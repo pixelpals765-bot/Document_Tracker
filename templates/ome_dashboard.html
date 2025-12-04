@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OME Dashboard</title>
+    <style>
+        body {
+            font-family: "Segoe UI", sans-serif;
+            background-color: #f5f6fa;
+            margin: 0;
+            font-size: 14px;
+        }
+
+        /* Header */
+        header {
+            background-color: #003366;
+            color: white;
+            padding: 10px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        h1 { margin: 0; font-size: 20px; }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+            margin-left: 10px;
+        }
+        .dropbtn {
+            background-color: #0059b3;
+            color: white;
+            padding: 8px 14px;
+            font-size: 13px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .dropbtn:hover { background-color: #0073e6; }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 150px;
+            box-shadow: 0px 6px 12px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .dropdown-content a {
+            color: #003366;
+            padding: 10px 12px;
+            text-decoration: none;
+            display: block;
+            font-size: 13px;
+        }
+        .dropdown-content a:hover { background-color: #f1f1f1; }
+        .dropdown:hover .dropdown-content { display: block; }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logout {
+            color: white;
+            text-decoration: none;
+            background-color: #b30000;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            transition: 0.3s;
+        }
+        .logout:hover { background-color: #e60000; }
+
+        /* Main layout */
+        main {
+            padding: 20px 40px;
+        }
+
+        h2 {
+            color: #003366;
+            margin-bottom: 8px;
+            font-size: 18px;
+        }
+
+        /* Cards section */
+        .cards {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .card {
+            flex: 1;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 18px;
+            text-align: center;
+            transition: 0.3s;
+        }
+
+        .card:hover { transform: translateY(-2px); }
+
+        .card h3, .card h5 {
+            color: #003366;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .card h2 {
+            font-size: 22px;
+            color: #0059b3;
+        }
+
+        /* Table section */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            font-size: 13px;
+        }
+
+        thead {
+            background-color: #003366;
+            color: white;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        tbody tr:hover {
+            background-color: #e6f0ff;
+        }
+
+        .actions button {
+            border: none;
+            border-radius: 5px;
+            padding: 5px 8px;
+            margin: 0 2px;
+            cursor: pointer;
+            color: white;
+            font-size: 12px;
+        }
+
+        .view-btn { background-color: #0073e6; }
+        .view-btn:hover { background-color: #005bb5; }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 50px auto;
+            padding: 20px 25px;
+            border-radius: 10px;
+            width: 95%;
+            max-width: 1100px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            overflow-x: auto;
+            font-size: 13px;
+        }
+
+        .modal-content h2, .modal-content h5 {
+            color: #003366;
+            margin-top: 0;
+            font-size: 15px;
+        }
+
+        .modal-content th, .modal-content td {
+            padding: 10px 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover { color: #333; }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .received-btn {
+            background-color: #0073e6;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+        }
+
+        .received-btn:hover {
+            background-color: #005bb5;
+        }
+
+        /* --- Add Document Modal Styling --- */
+        #addDocumentModal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            backdrop-filter: blur(6px);
+            background: rgba(0, 0, 0, 0.3);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .add-document {
+            width: 500px;
+            background: #fff;
+            padding: 30px 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            text-align: center;
+            font-family: "Segoe UI", sans-serif;
+        }
+
+        .add-document h3 {
+            color: #003366;
+            font-size: 18px;
+            margin-top: 0;
+            margin-bottom: 25px;
+            font-weight: 600;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            font-weight: 500;
+            color: #003366;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .form-group select,
+        .form-group input[type="file"] {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .form-group select:focus,
+        .form-group input[type="file"]:focus {
+            border-color: #0059b3;
+            box-shadow: 0 0 0 2px rgba(0,89,179,0.15);
+        }
+
+        .form-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 25px;
+        }
+
+        .form-actions .send-btn {
+            width: 100%;
+            background-color: #003366;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .form-actions .send-btn:hover {
+            background-color: #0059b3;
+        }
+
+        .form-actions .cancel-link {
+            color: #003366;
+            font-size: 13px;
+            text-decoration: none;
+            margin-top: 10px;
+        }
+
+        .form-actions .cancel-link:hover {
+            text-decoration: underline;
+        }
+
+    </style>
+</head>
+<body>
+<header>
+    <h1>🏗️ OME Dashboard</h1>
+    <div class="header-right">
+        <div class="dropdown">
+            <button class="dropbtn">Document ▾</button>
+            <div class="dropdown-content">
+                <a href="{{ url_for('view_documents') }}">View Documents</a>
+                <a href="#">Add Document</a>
+                <a href="{{ url_for('audit_trail') }}">Audit Trail</a>
+            </div>
+        </div>
+        <a href="{{ url_for('logout') }}" class="logout">Logout</a>
+    </div>
+</header>
+
+<main>
+    <h2>Welcome, {{ username }}!</h2>
+    <p>This is the dashboard for the <strong>Office of the Municipal Engineer (OME)</strong>.</p>
+
+    <!-- Cards -->
+    <div class="cards">
+        <div class="card">
+            <h3>Total Documents</h3>
+            <p style="color: transparent;">—</p>
+        </div>
+
+        <div class="card">
+            <h3>Pending</h3>
+            <p style="color: transparent;">—</p>
+        </div>
+
+        <div class="card">
+    <h3>To Received</h3>
+    <p style="color: transparent;">—</p>
+</div>
+<div class="card">
+    <h3>Received Documents</h3>
+    <p style="color: transparent;">—</p>
+</div>
+
+
+        <div class="card" id="issuedCard">
+            <h5>Issued Control No.</h5>
+            <h2>{{ issued_count_ome }}</h2>
+        </div>
+    </div>
+
+    <!-- Table -->
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Control No.</th>
+            <th>Document Name</th>
+            <th>Code</th>
+            <th>Program/Project Title</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for doc in documents_ome %}
+        <tr>
+            <td>{{ doc.id }}</td>
+            <td>{{ doc.control_no }}</td>
+            <td>{{ doc.name }}</td>
+            <td>{{ doc.code }}{{ doc.control_no }}</td>
+            <td>{{ doc.program_title }}</td>
+            <td class="actions">
+                {% if not doc.received %}
+                <form method="POST" action="{{ url_for('receive_document_ome', control_no=doc.control_no) }}" style="display:inline;">
+                    <button type="submit" class="view-btn">📥 Receive</button>
+                </form>
+                {% else %}
+                <span style="color: green; font-weight: bold;">Received</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="6" style="text-align:center;">No records found</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+</main>
+
+<!-- Modals -->
+<!-- Issued Control Numbers Modal -->
+<div id="issuedModal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeModal">&times;</span>
+        <div class="modal-header">
+            <h5>Issued Control No.</h5>
+            <button id="receivedBtn" class="received-btn">Received Control Number</button>
+        </div>
+        <table id="issuedTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Control No.</th>
+                    <th>Program/Project Title</th>
+                    <th>Source of Fund</th>
+                    <th>Code</th>
+                    <th>Issued Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Received Control Numbers Modal -->
+<div id="receivedModal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeReceivedModal">&times;</span>
+        <h5>Received Control Numbers</h5>
+        <table id="receivedTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Control No.</th>
+                    <th>Program/Project Title</th>
+                    <th>Source of Fund</th>
+                    <th>Code</th>
+                    <th>Issued Date</th>
+                    <th>Received Date</th>
+                    <th>Received By</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+<!-- Add Document Modal -->
+<div id="addDocumentModal" style="display: none;">
+    <div class="add-document">
+        <h3>Add Document</h3>
+
+        <form id="addDocumentForm" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="controlNumberSelect">Select here</label>
+                <!-- 🔧 FIXED: name changed from document_name → control_number -->
+                <select id="controlNumberSelect" name="control_number" class="form-control">
+                    <option value="">--Select Here--</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="documentType">Document Type:</label>
+                <select id="documentType" name="document_type">
+                    <option value="">--Select Here--</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="sendTo">Send to:</label>
+                <select id="sendTo" name="send_to">
+                    <option value="">--Select Here--</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="uploadFile">Upload File:</label>
+                <input type="file" id="uploadFile" name="document_file">
+            </div>
+
+            <div class="form-group">
+                <label for="signatories">Signatories:</label>
+                <select id="signatories" name="signatories">
+                    <option value="">--Select Here--</option>
+                </select>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="send-btn">Send</button>
+                <a href="#" id="cancelAddDocument" class="cancel-link">← Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const issuedModal = document.getElementById("issuedModal");
+    const receivedModal = document.getElementById("receivedModal");
+    const closeModal = document.getElementById("closeModal");
+    const closeReceivedModal = document.getElementById("closeReceivedModal");
+    const issuedCard = document.getElementById("issuedCard");
+    const receivedBtn = document.getElementById("receivedBtn");
+    const issuedTableBody = document.querySelector("#issuedTable tbody");
+    const receivedTableBody = document.querySelector("#receivedTable tbody");
+    const username = "{{ username }}";
+
+    // 🔄 Refresh Issued Count (OME)
+    function refreshIssuedCount() {
+        fetch("/get_issued_count_ome")
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.querySelector("#issuedCard h2").textContent = data.issued_count;
+                }
+            })
+            .catch(error => console.error("Error updating issued count:", error));
+    }
+
+    // 🗂️ Show Issued Control Numbers Modal (OME)
+    issuedCard.addEventListener("click", async () => {
+        await loadIssuedControlNumbers();
+        issuedModal.style.display = "block";
+    });
+
+    // 🗂️ Show Received Control Numbers Modal (OME)
+    receivedBtn.addEventListener("click", async () => {
+        await loadReceivedControlNumbers();
+        receivedModal.style.display = "block";
+    });
+
+    // ❌ Close Modals
+    closeModal.onclick = () => (issuedModal.style.display = "none");
+    closeReceivedModal.onclick = () => (receivedModal.style.display = "none");
+
+    window.onclick = (e) => {
+        if (e.target === issuedModal) issuedModal.style.display = "none";
+        if (e.target === receivedModal) receivedModal.style.display = "none";
+    };
+
+    // 📋 Load Issued Control Numbers (OME)
+    async function loadIssuedControlNumbers() {
+        const res = await fetch("/issued_control_numbers_ome");
+        const data = await res.json();
+        issuedTableBody.innerHTML = "";
+
+        const unreceived = data.filter(doc => doc.received == 0);
+
+        if (!unreceived.length) {
+            issuedTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center;">No issued control numbers found.</td></tr>`;
+            return;
+        }
+
+        unreceived.forEach((doc, i) => {
+            const codeWithControl = `${doc.code || ""}${doc.code && doc.control_no ? " - " : ""}${doc.control_no || ""}`;
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${i + 1}</td>
+                <td>${doc.control_no}</td>
+                <td>${doc.program || "—"}</td>
+                <td>${doc.source_of_fund || "—"}</td>
+                <td>${codeWithControl || "—"}</td>
+                <td>${doc.assigned_date || "—"}</td>
+                <td><button class='view-btn receive-btn' data-control='${doc.control_no}'>📥 Receive</button></td>
+            `;
+            issuedTableBody.appendChild(row);
+        });
+    }
+
+    // 📋 Load Received Control Numbers (OME)
+    async function loadReceivedControlNumbers() {
+        const res = await fetch("/received_control_numbers_ome");
+        const data = await res.json();
+        receivedTableBody.innerHTML = "";
+
+        if (!data.length) {
+            receivedTableBody.innerHTML = `<tr><td colspan="9" style="text-align:center;">No received control numbers found.</td></tr>`;
+            return;
+        }
+
+        data.forEach((item, i) => {
+            const codeWithControl = `${item.code || ""}${item.code && item.control_no ? " - " : ""}${item.control_no || ""}`;
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${i + 1}</td>
+                <td>${item.control_no}</td>
+                <td>${item.program || "—"}</td>
+                <td>${item.source_of_fund || "—"}</td>
+                <td>${codeWithControl}</td>
+                <td>${item.assigned_date || "—"}</td>
+                <td>${item.received_date || "—"}</td>
+                <td>${item.received_by || "—"}</td>
+                <td style="color: green; font-weight: bold;">Received</td>
+            `;
+            receivedTableBody.appendChild(row);
+        });
+    }
+
+    // ------------------ Populate Control Number Dropdown (OME) ------------------
+    async function loadReceivedControlNumbersDropdown() {
+        try {
+            const res = await fetch("/get_received_control_numbers_ome");
+            const data = await res.json();
+            const dropdown = document.getElementById("controlNumberSelect");
+
+            if (data.success) {
+                dropdown.innerHTML = '<option value="">--Select Here--</option>';
+                data.data.forEach(item => {
+                    const opt = document.createElement("option");
+                    opt.value = item.value; // e.g. "PRN-2025-003|2025-003"
+                    opt.textContent = item.label;
+                    dropdown.appendChild(opt);
+                });
+            } else {
+                console.error(data.error);
+            }
+        } catch (err) {
+            console.error("Error loading control numbers:", err);
+        }
+    }
+
+    // ✅ Initial load for dropdown
+    loadReceivedControlNumbersDropdown();
+
+    // 📥 Receive Control Number (OME)
+    issuedTableBody.addEventListener("click", async (e) => {
+        if (e.target.classList.contains("receive-btn")) {
+            const controlNo = e.target.getAttribute("data-control");
+            const confirmReceive = confirm(`Mark control number ${controlNo} as received?`);
+            if (!confirmReceive) return;
+
+            const res = await fetch("/receive_control_number_ome", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ control_no: controlNo, received_by: username })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                alert("✅ Control number successfully marked as received!");
+                e.target.closest("tr").remove();
+                await loadReceivedControlNumbers();
+                await loadReceivedControlNumbersDropdown(); // 🔄 refresh dropdown
+                refreshIssuedCount();
+            } else {
+                alert("❌ Failed to update. Please try again.");
+            }
+        }
+    });
+
+    // ------------------ Dependent Dropdown Logic ------------------
+    const controlNumberSelect = document.getElementById("controlNumberSelect");
+    const documentTypeSelect = document.getElementById("documentType");
+    const sendToSelect = document.getElementById("sendTo");
+    const signatoriesSelect = document.getElementById("signatories");
+
+    sendToSelect.disabled = true;
+    signatoriesSelect.disabled = true;
+
+    const sendToMap = {
+        "Activity Design": ["MBO", "MTO", "MMO"],
+        "Purchase Request": ["BAC Secretariat", "MBO", "MMO"],
+        "Request for Quotation/Canvass Form": ["BAC Secretariat", "Suppliers"],
+        "Abstract of Quotation": ["BAC", "MMO"],
+        "Purchase Order": ["Supplier", "MMO"],
+        "Inspection and Acceptance": ["INSPECTOR", "GSO"],
+        "Obligation Request": ["MBO"],
+        "Disbursement Voucher": ["OMAcc", "MTO", "MMO"]
+    };
+
+    const signatoriesMap = {
+        "MBO": ["Municipal Budget Officer", "Budget Staff"],
+        "MTO": ["Municipal Treasurer", "Treasury Clerk"],
+        "MMO": ["Municipal Mayor", "Executive Secretary"],
+        "BAC Secretariat": ["BAC Secretariat Head", "Procurement Officer"],
+        "BAC": ["BAC Chairperson", "BAC Member"],
+        "GSO": ["General Services Officer", "Supply Officer"],
+        "INSPECTOR": ["Inspection Officer"],
+        "Supplier": ["Supplier Representative"],
+        "OMAcc": ["Officer-in-Charge, Accounting"]
+    };
+
+    // When Control Number changes
+    controlNumberSelect.addEventListener("change", function () {
+        const selectedValue = this.options[this.selectedIndex].text;
+
+        documentTypeSelect.innerHTML = '<option value="">--Select Here--</option>';
+        sendToSelect.innerHTML = '<option value="">--Select Here--</option>';
+        signatoriesSelect.innerHTML = '<option value="">--Select Here--</option>';
+        sendToSelect.disabled = true;
+        signatoriesSelect.disabled = true;
+
+        if (selectedValue.startsWith("PRN")) {
+            ["Activity Design","Purchase Request","Request for Quotation/Canvass Form","Abstract of Quotation","Purchase Order","Inspection and Acceptance","Obligation Request","Disbursement Voucher"]
+                .forEach(opt => {
+                    const option = document.createElement("option");
+                    option.value = opt;
+                    option.textContent = opt;
+                    documentTypeSelect.appendChild(option);
+                });
+        } else if (selectedValue.startsWith("SVP")) {
+            ["Activity Design","Purchase Request","Abstract of Quotation","Inspection and Acceptance","Obligation Request","Disbursement Voucher"]
+                .forEach(opt => {
+                    const option = document.createElement("option");
+                    option.value = opt;
+                    option.textContent = opt;
+                    documentTypeSelect.appendChild(option);
+                });
+        }
+    });
+
+    // When Document Type changes
+    documentTypeSelect.addEventListener("change", function () {
+        const selectedType = this.value;
+        const recipients = sendToMap[selectedType] || [];
+        sendToSelect.innerHTML = '<option value="">--Select Here--</option>';
+        signatoriesSelect.innerHTML = '<option value="">--Select Here--</option>';
+        signatoriesSelect.disabled = true;
+
+        if (recipients.length > 0) {
+            sendToSelect.disabled = false;
+            recipients.forEach(r => {
+                const opt = document.createElement("option");
+                opt.value = r;
+                opt.textContent = r;
+                sendToSelect.appendChild(opt);
+            });
+        } else {
+            sendToSelect.disabled = true;
+        }
+    });
+
+    // When Send To changes
+    sendToSelect.addEventListener("change", function () {
+        const selectedOffice = this.value;
+        const signatories = signatoriesMap[selectedOffice] || [];
+        signatoriesSelect.innerHTML = '<option value="">--Select Here--</option>';
+
+        if (signatories.length > 0) {
+            signatoriesSelect.disabled = false;
+            signatories.forEach(sig => {
+                const opt = document.createElement("option");
+                opt.value = sig;
+                opt.textContent = sig;
+                signatoriesSelect.appendChild(opt);
+            });
+        } else {
+            signatoriesSelect.disabled = true;
+        }
+    });
+
+    // ------------------ Add Document Modal Logic ------------------
+    const addDocumentLink = document.querySelector('.dropdown-content a[href="#"]');
+    const addDocumentModal = document.getElementById("addDocumentModal");
+    const cancelAddDocument = document.getElementById("cancelAddDocument");
+    const addDocumentForm = document.getElementById("addDocumentForm");
+
+    addDocumentLink.addEventListener("click", (e) => {
+        e.preventDefault();
+        addDocumentModal.style.display = "flex";
+    });
+
+    cancelAddDocument.addEventListener("click", (e) => {
+        e.preventDefault();
+        addDocumentModal.style.display = "none";
+    });
+
+    window.addEventListener("click", (e) => {
+        if (e.target === addDocumentModal) {
+            addDocumentModal.style.display = "none";
+        }
+    });
+
+    // 📝 Add Document Form Submission
+    if (addDocumentForm) {
+        addDocumentForm.addEventListener("submit", async function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            console.log("Form values:", Object.fromEntries(formData.entries())); // ✅ Debug
+
+            const response = await fetch("/add_document_ome", { method: "POST", body: formData });
+            const result = await response.json();
+
+            if (result.success) {
+                alert("✅ Document added successfully!");
+                addDocumentModal.style.display = "none";
+                this.reset();
+                loadReceivedControlNumbersDropdown(); // refresh dropdown
+            } else {
+                alert("❌ " + result.error);
+            }
+        });
+    }
+});
+</script>
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f6f9;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            font-size: 13px;
+        }
+
+        header {
+            background-color: #003366;
+            color: white;
+            padding: 10px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            z-index: 2;
+        }
+
+        header h1 {
+            font-size: 16px;
+            margin: 0;
+        }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropbtn {
+            background-color: #00509e;
+            color: white;
+            padding: 8px 12px;
+            font-size: 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .dropbtn:hover {
+            background-color: #003f7f;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 150px;
+            box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+            z-index: 3;
+            border-radius: 6px;
+        }
+
+        .dropdown-content a {
+            color: #003366;
+            padding: 8px 12px;
+            text-decoration: none;
+            display: block;
+            font-size: 12px;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            position: relative;
+            transition: filter 0.3s ease;
+        }
+
+        /* Only blur main area */
+        main.blurred {
+            filter: blur(5px);
+            pointer-events: none;
+        }
+
+        .dashboard-box {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 280px;
+        }
+
+        .dashboard-box h2 {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .dashboard-box p {
+            font-size: 13px;
+            margin-bottom: 15px;
+        }
+
+        a.logout {
+            display: inline-block;
+            padding: 8px 14px;
+            background-color: #dc3545;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+            font-size: 12px;
+        }
+
+        a.logout:hover {
+            background-color: #b02a37;
+        }
+
+        footer {
+            background-color: #003366;
+            color: white;
+            text-align: center;
+            padding: 8px 0;
+            font-size: 12px;
+            z-index: 2;
+        }
+
+    /* === MODAL WRAPPER (CENTERED) === */
+    .modal {
+    display: none;      /* keep hidden */
+    position: fixed;
+    z-index: 5;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.4);
+    backdrop-filter: blur(6px);
+
+    /* Centering works ONLY when display:flex is active */
+    justify-content: center;
+    align-items: center;
+}
+.modal.show {
+    display: flex !important;   /* show modal AND center content */
+}
+
+
+/* === DEFAULT SMALL MODAL === */
+.modal-content {
+    background: white;
+    padding: 25px 30px;
+    border-radius: 10px;
+    width: 400px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-content h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #003366;
+}
+
+/* === FORM ELEMENTS === */
+label {
+    display: block;
+    font-weight: bold;
+    margin-top: 8px;
+    color: #333;
+}
+
+input, select {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.btn-primary {
+    background-color: #003366;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 15px;
+    font-weight: bold;
+}
+
+.btn-primary:hover {
+    background-color: #00509e;
+}
+
+.close-btn {
+    display: block;
+    text-align: center;
+    margin-top: 12px;
+    color: #003366;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.close-btn:hover {
+    text-decoration: underline;
+}
+
+button.cancel-btn { background-color: #dc3545; }
+button.cancel-btn:hover { background-color: #b02a37; }
+
+/* === FIXED SIZE AUDIT TRAIL MODAL (BIG) === */
+.audit-fixed {
+    width: 1200px !important;
+    height: 750px !important;
+    max-width: 1180px;
+    max-height: 650px;
+
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    animation: fadeIn 0.3s ease;
+
+    /* Ensure content is vertically stacked */
+    display: flex;
+    flex-direction: column;
+}
+
+/* === NOT Scrollable table area === */
+.audit-table-container {
+    margin-top: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    max-height: none;
+    overflow: visible;
+}
+
+
+/* === TABLE === */
+.audit-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.audit-table th,
+.audit-table td {
+    padding: 8px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+.audit-table th {
+    background-color: #003366;
+    color: white;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.audit-table th:nth-child(1),
+.audit-table td:nth-child(1) {
+    width: 60px;
+    text-align: center;
+}
+
+.audit-table th:nth-child(3),
+.audit-table td:nth-child(3) {
+    width: 150px;
+    text-align: center;
+}
+
+.audit-table th:nth-child(4),
+.audit-table td:nth-child(4),
+.audit-table th:nth-child(5),
+.audit-table td:nth-child(5) {
+    width: 120px;
+    text-align: center;
+}
+
+.audit-table th:nth-child(2),
+.audit-table td:nth-child(2) {
+    width: auto;
+    white-space: normal;
+}
+
+
+    .audit-search-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.audit-search-wrapper input {
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.audit-search-wrapper input[type="date"] {
+    width: 170px;
+}
+
+.audit-search-wrapper button {
+    padding: 6px 12px;
+    border: none;
+    background: #0a4fa3;
+    color: white;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.audit-search-wrapper .clear-btn {
+    background: #777;
+}
+
+
+    .audit-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+    font-size: 14px;
+}
+
+.audit-pagination button {
+    background: none;
+    border: none;
+    color: #0a4fa3;
+    cursor: pointer;
+    padding: 4px 8px;
+}
+
+.audit-pagination button.disabled {
+    color: #aaa;
+    cursor: default;
+}
+
+.audit-pagination .page-number {
+    cursor: pointer;
+}
+
+.audit-pagination .active-page {
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+
+
+
+
+    </style>
+</head>
+<body>
+    <header>
+    <h1>Document Tracker - Admin Dashboard</h1>
+
+    <div class="header-actions">
+        <div class="dropdown-container">
+            <div class="dropdown">
+                <button class="dropbtn">Administrator ▾</button>
+                <div class="dropdown-content">
+                    <a href="{{ url_for('view_users') }}">Manage Users</a>
+                    <a href="{{ url_for('audit_trail') }}">Audit Trail</a>
+                </div>
+            </div>
+
+            <div class="dropdown">
+                <button class="dropbtn">Document ▾</button>
+                <div class="dropdown-content">
+                    <a href="{{ url_for('view_documents') }}">View Documents</a>
+                    <a href="#" onclick="openAssignModal()">Assign Control No.</a>
+                </div>
+            </div>
+
+            <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+        </div>
+    </div>
+</header>
+
+
+    <main id="mainContent">
+        <div class="dashboard-box">
+            <h2>Welcome, {{ username }} (Admin)</h2>
+            <p>You have full access to manage users and documents.</p>
+            <a href="{{ url_for('logout') }}" class="logout">Logout</a>
+        </div>
+    </main>
+
+    <footer>
+        &copy; 2025 Document Tracker System | Admin Panel
+    </footer>
+
+    <!-- ADD USER MODAL -->
+    <div class="modal" id="addUserModal">
+        <div class="modal-content">
+            <h2>Add New User</h2>
+
+            {% if message %}
+                <p class="message">{{ message }}</p>
+            {% endif %}
+
+            <form method="POST" action="{{ url_for('add_user') }}">
+                <label for="name">Name</label>
+                <input type="text" name="name" id="name" required>
+
+                <label for="username">Username</label>
+                <input type="text" name="username" id="username" required autocomplete="off">
+
+                <label for="password">Password</label>
+                <input type="password" name="password" id="password" required autocomplete="new-password">
+
+                <label for="office">Office/Department</label>
+                <select name="office" id="office" required>
+                    <option value="">Select Office</option>
+                    <option>MMO</option>
+                    <option>MBO</option>
+                    <option>OMAcc</option>
+                    <option>PESO</option>
+                    <option>HRMO</option>
+                    <option>GSO</option>
+                    <option>MSWDO</option>
+                    <option>OMAss</option>
+                    <option>MTO</option>
+                    <option>MCR</option>
+                    <option>TOURISM</option>
+                    <option>MPDO</option>
+                    <option>SB</option>
+                    <option>SSB</option>
+                    <option>MHO</option>
+                    <option>MDRRMO</option>
+                    <option>OME</option>
+                    <option>PORT</option>
+                    <option>MAO</option>
+                </select>
+
+                <label for="role">Position</label>
+                <select name="role" id="role" required>
+                    <option value="">Select Role</option>
+                    <option value="admin">Admin</option>
+                    <option value="user">User</option>
+                </select>
+
+                <button type="submit" class="btn-primary">Add User</button>
+                <span class="close-btn" onclick="closeAddUserModal()">← Cancel</span>
+            </form>
+        </div>
+    </div>
+
+  <!-- ASSIGN CONTROL NUMBER MODAL -->
+<div class="modal" id="assignModal">
+    <div class="modal-content">
+        <h2>Assign Control Number</h2>
+
+        <form method="POST" action="{{ url_for('assign_control_no') }}">
+            <label for="assign_control_no">Control Number</label>
+            <input type="text" name="control_no" id="assign_control_no" placeholder="Enter Control Number" required>
+
+            <label for="assign_office">Office/Department</label>
+            <select name="office" id="assign_office" required>
+                <option value="">Select Office</option>
+                <option>MMO</option>
+                <option>MBO</option>
+                <option>OMAcc</option>
+                <option>PESO</option>
+                <option>HRMO</option>
+                <option>GSO</option>
+                <option>MSWDO</option>
+                <option>OMAss</option>
+                <option>MTO</option>
+                <option>MCR</option>
+                <option>TOURISM</option>
+                <option>MPDO</option>
+                <option>SB</option>
+                <option>SSB</option>
+                <option>MHO</option>
+                <option>MDRRMO</option>
+                <option>OME</option>
+                <option>PORT</option>
+                <option>MAO</option>
+            </select>
+
+            <label for="assign_program">Program/Project Title</label>
+            <input type="text" name="program" id="assign_program" placeholder="Enter Program or Project Title" required>
+
+            <label for="assign_code">Code</label>
+            <select name="code" id="assign_code" required>
+                <option value="">Select Code</option>
+                <option value="PRN">PRN</option>
+                <option value="SVP">SVP</option>
+            </select>
+
+            <!-- ✅ New Source of Fund Dropdown -->
+            <label for="assign_fund">Source of Fund</label>
+            <select name="source_of_fund" id="assign_fund" required>
+                <option value="">Select Source of Fund</option>
+                <option value="General Fund">General Fund</option>
+                <option value="Special Education Fund">Special Education Fund</option>
+                <option value="Trust Fund">Trust Fund</option>
+                <option value="Trust Liabilities">Trust Liabilities</option>
+            </select>
+
+            <button type="submit" class="btn-primary">Assign</button>
+            <span class="close-btn" onclick="closeAssignModal()">← Cancel</span>
+        </form>
+    </div>
+</div>
+
+
+
+
+
+
+
+<script>
+    function openAddUserModal() {
+        document.getElementById('addUserModal').style.display = 'flex';
+        document.getElementById('mainContent').classList.add('blurred');
+    }
+
+    function closeAddUserModal() {
+        document.getElementById('addUserModal').style.display = 'none';
+        document.getElementById('mainContent').classList.remove('blurred');
+    }
+
+    window.addEventListener('click', function(e) {
+        const modal = document.getElementById('addUserModal');
+        if (e.target === modal) {
+            closeAddUserModal();
+        }
+    });
+
+    function openAssignModal() {
+        document.getElementById('assignModal').style.display = 'flex';
+        document.getElementById('mainContent').classList.add('blurred');
+    }
+
+    function closeAssignModal() {
+        document.getElementById('assignModal').style.display = 'none';
+        document.getElementById('mainContent').classList.remove('blurred');
+    }
+
+    window.addEventListener('click', function(e) {
+        const assignModal = document.getElementById('assignModal');
+        if (e.target === assignModal) {
+            closeAssignModal();
+        }
+    });
+
+    // ✅ Custom success/error message overlay
+    function showOverlayMessage(message, isSuccess = true) {
+        // Create overlay div
+        const overlay = document.createElement('div');
+        overlay.style.position = 'fixed';
+        overlay.style.top = 0;
+        overlay.style.left = 0;
+        overlay.style.width = '100%';
+        overlay.style.height = '100%';
+        overlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
+        overlay.style.display = 'flex';
+        overlay.style.justifyContent = 'center';
+        overlay.style.alignItems = 'center';
+        overlay.style.zIndex = '9999';
+
+        // Create message box
+        const box = document.createElement('div');
+        box.style.backgroundColor = '#fff';
+        box.style.padding = '30px';
+        box.style.borderRadius = '12px';
+        box.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+        box.style.textAlign = 'center';
+        box.style.minWidth = '300px';
+
+        const title = document.createElement('h3');
+        title.textContent = isSuccess ? '✅ Success' : '❌ Error';
+        title.style.color = isSuccess ? '#2ecc71' : '#e74c3c';
+
+        const msg = document.createElement('p');
+        msg.textContent = message;
+        msg.style.marginTop = '10px';
+        msg.style.color = '#333';
+
+        const btn = document.createElement('button');
+        btn.textContent = 'OK';
+        btn.style.marginTop = '15px';
+        btn.style.padding = '8px 20px';
+        btn.style.border = 'none';
+        btn.style.borderRadius = '6px';
+        btn.style.cursor = 'pointer';
+        btn.style.backgroundColor = isSuccess ? '#2ecc71' : '#e74c3c';
+        btn.style.color = '#fff';
+        btn.onclick = () => document.body.removeChild(overlay);
+
+        // Assemble elements
+        box.appendChild(title);
+        box.appendChild(msg);
+        box.appendChild(btn);
+        overlay.appendChild(box);
+        document.body.appendChild(overlay);
+    }
+
+    // ✅ Example of auto-triggered flash message (from Flask)
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, msg in messages %}
+                window.onload = function() {
+                    showOverlayMessage("{{ msg }}", "{{ category }}" === "success");
+                };
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+
+
+
+
+</script>
+
+</body>
+</html>

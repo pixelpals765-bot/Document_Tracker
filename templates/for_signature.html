@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>For Signature</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f6f7fb;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+            color: #082B59;
+        }
+
+        /* ───── TABLE STYLING ───── */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        thead tr {
+            background: #003366;
+            color: white;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        th {
+            padding: 12px;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        tbody td {
+            padding: 12px;
+            font-size: 14px;
+        }
+
+        tbody tr:hover {
+            background: #f1f5ff;
+        }
+
+        .icon-btn {
+            border: none;
+            background: none;
+            cursor: pointer;
+            margin-right: 8px;
+            font-size: 16px;
+        }
+
+        .icon-btn i {
+            color: #082B59;
+        }
+
+        .icon-btn:hover i {
+            color: #0056b3;
+        }
+
+        /* Modal Background */
+        #returnModal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            backdrop-filter: blur(6px);
+            background: rgba(0, 0, 0, 0.3);
+            justify-content: center;
+            align-items: center;
+        }
+
+     .add-document {
+            width: 500px;
+            background: #fff;
+            padding: 30px 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            text-align: center;
+            font-family: "Segoe UI", sans-serif;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .add-document h3 {
+            color: #003366;
+            font-size: 18px;
+            margin-top: 0;
+            margin-bottom: 25px;
+            font-weight: 600;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+        /* Inputs */
+        #returnModal .form-group input,
+        #returnModal .form-group textarea {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        #returnModal .form-group textarea {
+            resize: vertical;
+        }
+
+        #returnModal .form-group input:focus,
+        #returnModal .form-group textarea:focus {
+            border-color: #0059b3;
+            box-shadow: 0 0 0 2px rgba(0, 89, 179, 0.15);
+        }
+
+        #returnModal .send-btn {
+            width: 100%;
+            background-color: #003366;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        #returnModal .send-btn:hover {
+            background-color: #0059b3;
+        }
+
+        #returnModal .cancel-link {
+            color: #003366;
+            font-size: 13px;
+            text-decoration: none;
+            margin-top: 10px;
+        }
+
+        #returnModal .cancel-link:hover {
+            text-decoration: underline;
+        }
+
+        .add-document {
+            background: white;
+            padding: 25px;
+            width: 420px;
+            border-radius: 10px;
+        }
+
+        @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+        }
+
+         /* Header */
+        header {
+            background-color: #003366;
+            color: white;
+            padding: 10px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+         /* Back Button */
+        .back-btn {
+            background-color: #004a99;
+            color: white;
+            padding: 8px 18px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid #003f85;
+            transition: background-color 0.2s ease;
+        }
+
+        .back-btn:hover {
+            background-color: #003f85;
+        }
+
+        /* Page Title */
+        .page-title {
+            text-align: left;
+            margin-top: 30px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #003366;
+        }
+
+        /* Table Styling */
+        table {
+            width: 100%;
+            margin: 25px auto;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: #003366;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background-color: #f1f5ff;
+        }
+
+
+    </style>
+</head>
+
+<body>
+   <header>
+    <h1>MBO</h1>
+    <a href="{{ url_for('received_documents') }}" class="back-btn">← Back</a>
+</header>
+
+<!-- PAGE TITLE -->
+<div class="page-title">📄 For Signature</div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Control No.</th>
+                <th>Code</th>
+                <th>Document Type</th>
+                <th>Program/Project Title</th>
+                <th>Document</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+
+        <tbody id="mboReceivedDocsTableBody"></tbody>
+    </table>
+
+    <!-- ============================ -->
+    <!-- RETURN DOCUMENT MODAL HTML  -->
+    <!-- ============================ -->
+    <div id="returnModal">
+        <div class="add-document">
+            <h3>Return Document</h3>
+
+            <form id="returnDocumentForm">
+                <div class="form-group">
+                    <label for="returnControlNo">Control No.</label>
+                    <input type="text" id="returnControlNo" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="returnCode">Code</label>
+                    <input type="text" id="returnCode" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="returnDocType">Document Type</label>
+                    <input type="text" id="returnDocType" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="returnProgramTitle">Program Title</label>
+                    <input type="text" id="returnProgramTitle" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="returnReason">Remarks</label>
+                    <textarea id="returnReason" style="height:120px;"></textarea>
+                </div>
+
+                <button type="button" id="confirmReturnBtn" class="send-btn">Return</button>
+                <a href="#" id="cancelReturn" class="cancel-link">← Cancel</a>
+            </form>
+        </div>
+    </div>
+
+    <!-- ============================ -->
+    <!-- JAVASCRIPT STARTS HERE      -->
+    <!-- ============================ -->
+    <script>
+        window.mboDocs = [];
+
+        loadMboReceivedDocuments();
+
+        function loadMboReceivedDocuments() {
+            fetch("/mbo_received_documents")
+                .then(res => res.json())
+                .then(data => {
+    // ⛔ Remove Obligation Request documents
+    data = data.filter(doc => doc.document_type !== "Obligation Request");
+
+    window.mboDocs = data;
+    const tbody = document.getElementById("mboReceivedDocsTableBody");
+    tbody.innerHTML = "";
+
+    if (!data.length) {
+        tbody.innerHTML =
+            `<tr><td colspan="7" style="text-align:center;">No received documents found.</td></tr>`;
+        return;
+    }
+
+    data.forEach(doc => {
+
+                        const viewUrl = `/uploads/${doc.filename}`;
+                        const downloadUrl = `/download/${doc.filename}`;
+
+                        const row = `
+                            <tr>
+                                <td>${doc.id}</td>
+                                <td>${doc.control_number}</td>
+                                <td>${doc.code ? `${doc.code}-${doc.control_number}` : "-"}</td>
+                                <td>${doc.document_type || "-"}</td>
+                                <td>${doc.program_title || "-"}</td>
+
+                                <td>
+                                    <button class="icon-btn" onclick="window.open('${viewUrl}', '_blank')">
+                                        <i class="fa fa-eye"></i>
+                                    </button>
+                                    <button class="icon-btn" onclick="window.location.href='${downloadUrl}'">
+                                        <i class="fa fa-download"></i>
+                                    </button>
+                                    <button class="icon-btn" onclick="saveDocument(${doc.id})">
+                                        <i class="fa fa-save"></i>
+                                    </button>
+                                </td>
+
+                                <td>
+                                    <button class="icon-btn" onclick="returnDocument(${doc.id})">
+                                        <i class="fa fa-undo"></i>
+                                    </button>
+                                    <button class="icon-btn" onclick="signDocument(${doc.id})">
+                                        <i class="fa fa-pen"></i>
+                                    </button>
+                                </td>
+                            </tr>`;
+                        tbody.insertAdjacentHTML("beforeend", row);
+                    });
+                });
+        }
+
+        /* ================================
+           SAVE DOCUMENT
+        ================================= */
+        window.saveDocument = async function (docId) {
+            const doc = window.mboDocs.find(d => d.id === docId);
+            if (!doc) return alert("Document not found.");
+
+            const payload = {
+                control_number: doc.control_number,
+                code: doc.code,
+                document_type: doc.document_type,
+                program_title: doc.program_title,
+                file_path: `/uploads/${doc.filename}`
+            };
+
+            const res = await fetch("/save_document", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await res.json();
+            alert(result.success ? "Document saved!" : "Error saving document.");
+        };
+
+        /* ================================
+           RETURN DOCUMENT MODAL LOGIC
+        ================================= */
+        window.selectedReturnId = null;
+
+        window.returnDocument = function (docId) {
+            window.selectedReturnId = docId;
+
+            const doc = window.mboDocs.find(d => d.id === docId);
+            if (!doc) return;
+
+            document.getElementById("returnControlNo").value = doc.control_number;
+            document.getElementById("returnCode").value = `${doc.code}-${doc.control_number}`;
+            document.getElementById("returnDocType").value = doc.document_type;
+            document.getElementById("returnProgramTitle").value = doc.program_title;
+            document.getElementById("returnReason").value = "";
+
+            document.getElementById("returnModal").style.display = "flex";
+        };
+
+        document.getElementById("cancelReturn").addEventListener("click", e => {
+            e.preventDefault();
+            document.getElementById("returnModal").style.display = "none";
+        });
+
+        document.getElementById("returnModal").addEventListener("click", e => {
+            if (e.target === document.getElementById("returnModal")) {
+                document.getElementById("returnModal").style.display = "none";
+            }
+        });
+
+        document.getElementById("confirmReturnBtn").addEventListener("click", () => {
+            const reason = document.getElementById("returnReason").value.trim();
+            if (!reason) return alert("Please enter a reason.");
+
+            fetch(`/return_document/${window.selectedReturnId}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ reason })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert("✔ Document returned successfully.");
+                        document.getElementById("returnModal").style.display = "none";
+                        loadMboReceivedDocuments();
+                    } else {
+                        alert("Error: " + data.error);
+                    }
+                });
+        });
+    </script>
+</body>
+</html>

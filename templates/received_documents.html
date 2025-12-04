@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Received Documents</title>
+
+    <style>
+        body {
+            font-family: "Segoe UI", sans-serif;
+            background-color: #f5f6fa;
+            margin: 0;
+            font-size: 14px;
+        }
+
+        /* Header */
+        header {
+            background-color: #003366;
+            color: white;
+            padding: 10px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+         .back-btn {
+        background-color: #004a99;  /* Same as your screenshot */
+        color: white;
+        padding: 8px 18px;
+        text-decoration: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid #003f85;
+        transition: background-color 0.2s ease;
+    }
+
+    .back-btn:hover {
+        background-color: #003f85;
+    }
+
+        /* Container for cards */
+        .card-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 40px;
+            gap: 20px; /* Space between cards */
+        }
+
+        /* Card Style */
+        .card {
+            width: 260px;
+            height: 150px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>💼 MBO Dashboard</h1>
+
+    <a href="{{ url_for('mbo_dashboard') }}" class="back-btn">← Back</a>
+</header>
+
+<!-- CARD SECTION -->
+<div class="card-container">
+
+    <!-- FOR OBLIGATION CARD -->
+    <div class="card" onclick="window.location.href='/for_obligation'">
+        <h3>For Obligation</h3>
+        <p id="forObligationCount">---</p>
+    </div>
+
+<!-- FOR SIGNATURE CARD -->
+<div class="card" onclick="window.location.href='/for_signature'">
+    <h3>For Signature</h3>
+    <p id="forSignatureCount">---</p>
+</div>
+
+
+</div>
+
+
+
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    // For Obligation count
+    fetch("/count_for_obligation")
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById("forObligationCount").textContent = data.count;
+        })
+        .catch(err => console.error("Error fetching obligation count:", err));
+
+    // For Signature count
+    fetch("/count_for_signature")
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById("forSignatureCount").textContent = data.count;
+        })
+        .catch(err => console.error("Error fetching signature count:", err));
+});
+
+
+
+</script>
+
+</body>
+</html>

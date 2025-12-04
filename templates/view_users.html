@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>View Users</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 0;
+            font-size: 13px;
+        }
+
+        header {
+            background-color: #003366;
+            color: white;
+            padding: 10px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        header h1 {
+            font-size: 16px;
+            margin: 0;
+        }
+
+        .back-btn {
+            background-color: #00509e;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 12px;
+        }
+
+        .back-btn:hover {
+            background-color: #003f7f;
+        }
+
+        main {
+            padding: 20px 30px;
+        }
+
+        /* Search bar styling */
+        .search-bar {
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-bar input {
+            padding: 6px 10px;
+            width: 230px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .search-bar button {
+            padding: 6px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .search-btn {
+            background-color: #00509e;
+        }
+
+        .search-btn:hover {
+            background-color: #003f7f;
+        }
+
+        .clear-btn {
+            background-color: #6c757d;
+        }
+
+        .clear-btn:hover {
+            background-color: #5a6268;
+        }
+
+        /* Adjusted table height */
+        .table-container {
+            max-height: 540px; /* balanced height */
+            overflow-y: auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            background: white;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+            font-size: 12px;
+        }
+
+        th, td {
+            padding: 10px 12px;
+        }
+
+        thead th {
+            position: sticky;
+            top: 0;
+            background-color: #003366;
+            color: white;
+            text-transform: uppercase;
+            font-size: 12px;
+            z-index: 2;
+            text-align: center;
+        }
+
+        /* Center all td except for Name, Username, and Office/Department */
+        tbody td {
+            text-align: center;
+        }
+
+        tbody td:nth-child(1),
+        tbody td:nth-child(2),
+        tbody td:nth-child(3) {
+            text-align: left;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #eef3fb;
+        }
+
+        footer {
+            background-color: #003366;
+            color: white;
+            text-align: center;
+            padding: 8px 0;
+            font-size: 12px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+
+        input[type="password"], input[type="text"] {
+            font-size: 12px;
+        }
+
+        button {
+            font-size: 12px;
+        }
+
+        .icon-btn {
+    border: none;
+    background: #003366;
+    color: white;
+    font-size: 16px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.icon-btn:hover {
+    background: #0055aa;
+}
+
+
+      /* === MODAL WRAPPER (CENTERED) === */
+    .modal {
+    display: none;      /* keep hidden */
+    position: fixed;
+    z-index: 5;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.4);
+    backdrop-filter: blur(6px);
+
+    /* Centering works ONLY when display:flex is active */
+    justify-content: center;
+    align-items: center;
+}
+.modal.show {
+    display: flex !important;   /* show modal AND center content */
+}
+
+
+/* === DEFAULT SMALL MODAL === */
+.modal-content {
+    background: white;
+    padding: 25px 30px;
+    border-radius: 10px;
+    width: 400px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-content h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #003366;
+}
+
+/* === FORM ELEMENTS === */
+label {
+    display: block;
+    font-weight: bold;
+    margin-top: 8px;
+    color: #333;
+}
+
+input, select {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.btn-primary {
+    background-color: #003366;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 15px;
+    font-weight: bold;
+}
+
+.btn-primary:hover {
+    background-color: #00509e;
+}
+
+.close-btn {
+    display: block;
+    text-align: center;
+    margin-top: 12px;
+    color: #003366;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.close-btn:hover {
+    text-decoration: underline;
+}
+
+button.cancel-btn { background-color: #dc3545; }
+button.cancel-btn:hover { background-color: #b02a37; }
+
+
+        .control-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding: 5px 0;
+}
+
+.left-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.right-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Icon Buttons */
+.icon-btn {
+    border: none;
+    background: #003366;
+    color: white;
+    font-size: 16px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.icon-btn:hover {
+    background: #0055aa;
+}
+
+/* Search input */
+#searchInput {
+    padding: 7px 10px;
+    width: 260px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+/* Search + Clear buttons */
+.search-btn,
+.clear-btn {
+    padding: 7px 14px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.search-btn {
+    background: #0066cc;
+    color: white;
+}
+.search-btn:hover {
+    background: #004c99;
+}
+
+.clear-btn {
+    background: #6c757d;
+    color: white;
+}
+.clear-btn:hover {
+    background: #5a6268;
+}
+
+
+    </style>
+</head>
+<body>
+    <header>
+        <h1>👥 View Users</h1>
+        <a href="{{ url_for('admin_dashboard') }}" class="back-btn">⬅ Back</a>
+    </header>
+
+    <main>
+      <!-- CONTROL BAR (Icons Left, Search Right) -->
+<div class="control-bar">
+
+    <!-- LEFT SIDE ICON BUTTONS -->
+    <div class="left-actions">
+        <button class="icon-btn" title="Add User" onclick="openAddUserModal()">➕</button>
+        <button class="icon-btn" title="Edit Users" onclick="window.location.href='{{ url_for('edit_users') }}'">✏️</button>
+    </div>
+
+    <!-- RIGHT SIDE SEARCH -->
+    <div class="right-actions">
+        <input type="text" id="searchInput" placeholder="Search by Name or Office / Department...">
+        <button class="search-btn" onclick="searchTable()">Search</button>
+        <button class="clear-btn" onclick="clearSearch()">Clear</button>
+    </div>
+</div>
+
+
+
+        <div class="table-container">
+            <table id="userTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Username</th>
+                        <th>Office / Department</th>
+                        <th>Password</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user['name'] }}</td>
+                        <td>{{ user['username'] }}</td>
+                        <td>{{ user['office'] }}</td>
+                        <td>
+                            <div style="display:flex; align-items:center; justify-content:center; gap:6px;">
+                                {% if user['temp_password'] %}
+                                    <input type="password" id="pw{{ loop.index }}" value="{{ user['temp_password'] }}" readonly
+                                           style="border:none; background:transparent; width:140px; color:#003366; font-family:monospace; text-align:center;" />
+                                    <button onclick="togglePassword({{ loop.index }})"
+                                            style="background:none; border:none; cursor:pointer; color:#003366; font-size:14px;"
+                                            title="Show/Hide Password">👁</button>
+
+                                    <form method="post" action="{{ url_for('clear_temp', user_id=user['id']) }}" style="display:inline;">
+                                        <button type="submit" style="margin-left:4px; padding:3px 6px; border-radius:4px; background:#6c757d; color:#fff; border:none; font-size:11px;">Clear</button>
+                                    </form>
+                                {% else %}
+                                    <span>************</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>{{ user['status'] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+       <!-- ADD USER MODAL -->
+<div class="modal" id="addUserModal">
+    <div class="modal-content">
+        <h2>Add New User</h2>
+
+        {% if message %}
+            <p class="message">{{ message }}</p>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('add_user') }}">
+            <label for="name">Name</label>
+            <input type="text" name="name" id="name" required>
+
+            <label for="username">Username</label>
+            <input type="text" name="username" id="username" required autocomplete="off">
+
+            <label for="password">Password</label>
+            <input type="password" name="password" id="password" required autocomplete="new-password">
+
+            <label for="office">Office/Department</label>
+            <select name="office" id="office" required>
+                <option value="">Select Office</option>
+                <option>MMO</option>
+                <option>MBO</option>
+                <option>OMAcc</option>
+                <option>PESO</option>
+                <option>HRMO</option>
+                <option>GSO</option>
+                <option>MSWDO</option>
+                <option>OMAss</option>
+                <option>MTO</option>
+                <option>MCR</option>
+                <option>TOURISM</option>
+                <option>MPDO</option>
+                <option>SB</option>
+                <option>SSB</option>
+                <option>MHO</option>
+                <option>MDRRMO</option>
+                <option>OME</option>
+                <option>PORT</option>
+                <option>MAO</option>
+            </select>
+
+            <label for="role">Position</label>
+            <select name="role" id="role" required>
+                <option value="">Select Role</option>
+                <option value="admin">Admin</option>
+                <option value="user">User</option>
+            </select>
+
+            <button type="submit" class="btn-primary">Add User</button>
+            <span class="close-btn" onclick="closeAddUserModal()">← Cancel</span>
+        </form>
+    </div>
+</div>
+
+    </main>
+
+    <footer>
+        &copy; 2025 Document Tracker System | Admin Panel
+    </footer>
+
+    <script>
+
+        function openAddUserModal() {
+       document.getElementById('addUserModal').style.display = 'flex';
+       document.getElementById('mainContent').classList.add('blurred');
+    }
+
+    function closeAddUserModal() {
+        document.getElementById('addUserModal').style.display = 'none';
+        document.getElementById('mainContent').classList.remove('blurred');
+    }
+
+    window.addEventListener('click', function(e) {
+        const modal = document.getElementById('addUserModal');
+        if (e.target === modal) {
+            closeAddUserModal();
+        }
+    });
+
+
+        function togglePassword(index) {
+            const input = document.getElementById('pw' + index);
+            if (!input) return;
+            input.type = input.type === "password" ? "text" : "password";
+        }
+
+        function searchTable() {
+            const input = document.getElementById("searchInput").value.toLowerCase().trim();
+            const rows = document.querySelectorAll("#userTable tbody tr");
+
+            rows.forEach(row => {
+                const name = row.cells[0]?.textContent.toLowerCase();
+                const office = row.cells[2]?.textContent.toLowerCase();
+                row.style.display = name.includes(input) || office.includes(input) ? "" : "none";
+            });
+        }
+
+        function clearSearch() {
+            document.getElementById("searchInput").value = "";
+            document.querySelectorAll("#userTable tbody tr").forEach(row => row.style.display = "");
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add User</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .form-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            width: 350px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #003366;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #003366;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #00509e;
+        }
+
+        .message {
+            text-align: center;
+            margin-top: 15px;
+            color: green;
+            font-weight: bold;
+        }
+
+        .error {
+            color: red;
+        }
+
+        a.back {
+            display: inline-block;
+            text-align: center;
+            margin-top: 15px;
+            color: #003366;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        a.back:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>Add New User</h2>
+
+        {% if message %}
+            <p class="message">{{ message }}</p>
+        {% endif %}
+
+        <form method="POST">
+            <label for="name">Name</label>
+            <input type="text" name="name" id="name" required>
+
+           <label for="username">Username</label>
+<input type="text" name="username" id="username" required autocomplete="off" value="">
+
+<label for="password">Password</label>
+<input type="password" name="password" id="password" required autocomplete="new-password" value="">
+
+
+            <label for="office">Office/Department</label>
+            <select name="office" id="office" required>
+                <option value="">Select Office</option>
+                <option>MMO</option>
+                <option>MBO</option>
+                <option>OMAcc</option>
+                <option>PESO</option>
+                <option>HRMO</option>
+                <option>GSO</option>
+                <option>MSWDO</option>
+                <option>OMAss</option>
+                <option>MTO</option>
+                <option>MCR</option>
+                <option>TOURISM</option>
+                <option>MPDO</option>
+                <option>SB</option>
+                <option>SSB</option>
+                <option>MHO</option>
+                <option>MDRRMO</option>
+                <option>OME</option>
+                <option>PORT</option>
+                <option>MAO</option>
+            </select>
+
+            <label for="role">Position</label>
+            <select name="role" id="role" required>
+                <option value="">Select Role</option>
+                <option value="admin">Admin</option>
+                <option value="user">User</option>
+            </select>
+
+            <button type="submit">Add User</button>
+        </form>
+
+        <a href="{{ url_for('admin_dashboard') }}" class="back">← Back to Dashboard</a>
+    </div>
+</body>
+</html>

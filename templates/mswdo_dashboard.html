@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MSWDO Dashboard</title>
+    <style>
+        body {
+            font-family: "Segoe UI", sans-serif;
+            background-color: #f5f6fa;
+            margin: 0;
+        }
+
+        header {
+            background-color: #003366;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            margin: 0;
+        }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+            margin-left: 10px;
+        }
+
+        .dropbtn {
+            background-color: #0059b3;
+            color: white;
+            padding: 10px 18px;
+            font-size: 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .dropbtn:hover {
+            background-color: #0073e6;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 180px;
+            box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .dropdown-content a {
+            color: #003366;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            font-weight: 500;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logout {
+            color: white;
+            text-decoration: none;
+            background-color: #b30000;
+            padding: 10px 18px;
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+
+        .logout:hover {
+            background-color: #e60000;
+        }
+
+        main {
+            padding: 40px;
+            text-align: center;
+        }
+
+        h2 {
+            color: #003366;
+        }
+
+    </style>
+</head>
+<body>
+    <header>
+        <h1>💛 MSWDO Dashboard</h1>
+        <div class="header-right">
+            <div class="dropdown">
+                <button class="dropbtn">Document ▾</button>
+                <div class="dropdown-content">
+                    <a href="{{ url_for('view_documents') }}">View Documents</a>
+                    <a href="{{ url_for('audit_trail') }}">Audit Trail</a>
+                </div>
+            </div>
+
+            <a href="{{ url_for('logout') }}" class="logout">Logout</a>
+        </div>
+    </header>
+
+    <main>
+        <h2>Welcome, {{ username }}!</h2>
+        <p>This is the dashboard for the <strong>Municipal Social Welfare and Development Office (MSWDO)</strong>.</p>
+    </main>
+</body>
+</html>

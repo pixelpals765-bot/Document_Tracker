@@ -1,0 +1,1654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <meta charset="UTF-8">
+    <title>MBO Dashboard</title>
+    <style>
+        body {
+            font-family: "Segoe UI", sans-serif;
+            background-color: #f5f6fa;
+            margin: 0;
+            font-size: 14px;
+        }
+
+        /* Header */
+        header {
+            background-color: #003366;
+            color: white;
+            padding: 10px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        h1 { margin: 0; font-size: 20px; }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+            margin-left: 10px;
+        }
+        .dropbtn {
+            background-color: #0059b3;
+            color: white;
+            padding: 8px 14px;
+            font-size: 13px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .dropbtn:hover { background-color: #0073e6; }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 150px;
+            box-shadow: 0px 6px 12px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .dropdown-content a {
+            color: #003366;
+            padding: 10px 12px;
+            text-decoration: none;
+            display: block;
+            font-size: 13px;
+        }
+        .dropdown-content a:hover { background-color: #f1f1f1; }
+        .dropdown:hover .dropdown-content { display: block; }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logout {
+            color: white;
+            text-decoration: none;
+            background-color: #b30000;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            transition: 0.3s;
+        }
+        .logout:hover { background-color: #e60000; }
+
+        /* Main layout */
+        main {
+            padding: 20px 40px;
+        }
+
+        h2 {
+            color: #003366;
+            margin-bottom: 8px;
+            font-size: 18px;
+        }
+
+        /* Cards section */
+
+        .cards {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .card {
+            flex: 1;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 18px;
+            text-align: center;
+            transition: 0.3s;
+        }
+
+        .card:hover { transform: translateY(-2px); }
+
+        .card h3, .card h5 {
+            color: #003366;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .card h2 {
+            font-size: 22px;
+            color: #0059b3;
+        }
+
+        /* Table section */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            font-size: 13px;
+        }
+
+        thead {
+            background-color: #003366;
+            color: white;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        tbody tr:hover {
+            background-color: #e6f0ff;
+        }
+
+        .actions button {
+            border: none;
+            border-radius: 5px;
+            padding: 5px 8px;
+            margin: 0 2px;
+            cursor: pointer;
+            color: white;
+            font-size: 12px;
+        }
+
+        .view-btn { background-color: #0073e6; }
+        .view-btn:hover { background-color: #005bb5; }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+       /* ----- Modal Content Styling ----- */
+.modal-content {
+    background-color: #fff;
+    margin: 50px auto;
+    padding: 20px 30px;
+    border-radius: 10px;
+    width: 97%;
+    max-width: 1400px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    overflow: hidden;
+    font-size: 13px;
+    animation: fadeIn 0.3s ease;
+    height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ----- Header Section ----- */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.received-btn {
+    background-color: #004080;
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.received-btn:hover {
+    background-color: #0059b3;
+}
+
+/* ----- Table Styling for Sticky Header + Scroll ----- */
+.modal-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.modal-content thead {
+    position: sticky;
+    top: 0;
+    background-color: #003366;
+    color: #fff;
+    z-index: 10;
+
+}
+
+.modal-content tbody {
+    display: block;
+    height: 60vh;
+    overflow-y: auto;
+    width: 100%;
+}
+
+.modal-content thead,
+.modal-content tbody tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
+/* ✅ Adjusted Column Widths for Issued Table */
+#issuedTable th:nth-child(1), #issuedTable td:nth-child(1) { width: 3%; }   /* ID */
+#issuedTable th:nth-child(2), #issuedTable td:nth-child(2) { width: 8%; }  /* Control No. */
+#issuedTable th:nth-child(3), #issuedTable td:nth-child(3) { width: 45%; }  /* Program/Project Title */
+#issuedTable th:nth-child(4), #issuedTable td:nth-child(4) { width: 12%; }  /* Source of Fund */
+#issuedTable th:nth-child(5), #issuedTable td:nth-child(5) { width: 10%; }  /* Code */
+#issuedTable th:nth-child(6), #issuedTable td:nth-child(6) { width: 12%; }  /* Issued Date */
+#issuedTable th:nth-child(7), #issuedTable td:nth-child(7) { width: 8%; }  /* Action */
+
+/* ✅ Adjusted Column Widths for Received Table */
+#receivedTable th:nth-child(1), #receivedTable td:nth-child(1) { width: 3%; }   /* ID */
+#receivedTable th:nth-child(2), #receivedTable td:nth-child(2) { width: 8%; }  /* Control No. */
+#receivedTable th:nth-child(3), #receivedTable td:nth-child(3) { width: 31%; }  /* Program/Project Title */
+#receivedTable th:nth-child(4), #receivedTable td:nth-child(4) { width: 10%; }  /* Source of Fund */
+#receivedTable th:nth-child(5), #receivedTable td:nth-child(5) { width: 10%; }   /* Code */
+#receivedTable th:nth-child(6), #receivedTable td:nth-child(6) { width: 10%; }  /* Issued Date */
+#receivedTable th:nth-child(7), #receivedTable td:nth-child(7) { width: 10%; }  /* Received Date */
+#receivedTable th:nth-child(8), #receivedTable td:nth-child(8) { width: 10%; }  /* Received By */
+#receivedTable th:nth-child(9), #receivedTable td:nth-child(9) { width: 8%; }  /* Status */
+
+
+/* ✅ Adjusted Column Widths for MBO Received Documents Table */
+#mboReceivedModal th:nth-child(1),
+#mboReceivedModal td:nth-child(1) { width: 3%; }   /* ID - reduced */
+#mboReceivedModal th:nth-child(2),
+#mboReceivedModal td:nth-child(2) { width: 8%; }  /* Control No. - reduced */
+#mboReceivedModal th:nth-child(3),
+#mboReceivedModal td:nth-child(3) { width: 10%; }   /* Code - reduced */
+#mboReceivedModal th:nth-child(4),
+#mboReceivedModal td:nth-child(4) { width: 10%; }   /* Document Type - reduced */
+#mboReceivedModal th:nth-child(5),
+#mboReceivedModal td:nth-child(5) { width: 63%; }  /* Program/Project Title - expanded */
+#mboReceivedModal th:nth-child(6),
+#mboReceivedModal td:nth-child(6) { width: 10%; }  /* Document - reduced */
+#mboReceivedModal th:nth-child(7),
+#mboReceivedModal td:nth-child(7) { width: 8%; }  /* Action - reduced */
+
+
+/* ✅ Common Cell Styling */
+.modal-content th,
+.modal-content td {
+    padding: 10px 8px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    word-wrap: break-word;
+}
+
+.modal-content tbody tr:nth-child(even) {
+    background-color: #f8f9fc;
+}
+
+.modal-content tbody tr:hover {
+    background-color: #e6f0ff;
+}
+
+.modal-content thead {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.modal-content tbody::-webkit-scrollbar {
+    width: 8px;
+}
+.modal-content tbody::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 4px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover { color: #333; }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .received-btn {
+            background-color: #0073e6;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+        }
+
+        .received-btn:hover {
+            background-color: #005bb5;
+        }
+
+        /* --- Add Document Modal Styling --- */
+        #addDocumentModal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            backdrop-filter: blur(6px);
+            background: rgba(0, 0, 0, 0.3);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .add-document {
+            width: 500px;
+            background: #fff;
+            padding: 30px 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            text-align: center;
+            font-family: "Segoe UI", sans-serif;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .add-document h3 {
+            color: #003366;
+            font-size: 18px;
+            margin-top: 0;
+            margin-bottom: 25px;
+            font-weight: 600;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            font-weight: 500;
+            color: #003366;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .form-group select,
+        .form-group input[type="file"] {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .form-group select:focus,
+        .form-group input[type="file"]:focus {
+            border-color: #0059b3;
+            box-shadow: 0 0 0 2px rgba(0,89,179,0.15);
+        }
+
+        .form-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 25px;
+        }
+
+        .form-actions .send-btn {
+            width: 100%;
+            background-color: #003366;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .form-actions .send-btn:hover {
+            background-color: #0059b3;
+        }
+
+        .form-actions .cancel-link {
+            color: #003366;
+            font-size: 13px;
+            text-decoration: none;
+            margin-top: 10px;
+        }
+
+        .form-actions .cancel-link:hover {
+            text-decoration: underline;
+        }
+
+.btn-receive {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.3s ease;
+}
+
+.btn-receive:hover {
+    background-color: #0056b3;
+}
+
+.fade-out {
+    opacity: 0;
+    transition: opacity 0.3s ease-out;
+}
+
+    .icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin: 0 3px;
+    font-size: 16px;
+    color: #333;
+    transition: color 0.2s ease;
+}
+.icon-btn:hover {
+    color: #007bff;
+}
+
+        /* >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+   RETURN DOCUMENT MODAL (Matches Add Document Modal)
+   Only missing styles added — no duplicates
+   >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> */
+
+/* Background overlay */
+#returnModal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    backdrop-filter: blur(6px);
+    background: rgba(0, 0, 0, 0.3);
+    justify-content: center;
+    align-items: center;
+}
+
+/* Reuse .add-document style — ALREADY EXISTS */
+/* Do not re-add add-document — only extend if needed */
+
+/* Ensure all Return fields match Add Document modal */
+#returnModal .form-group input,
+#returnModal .form-group textarea {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+    box-sizing: border-box;
+}
+
+#returnModal .form-group textarea {
+    resize: vertical;
+}
+
+/* Focus highlight */
+#returnModal .form-group input:focus,
+#returnModal .form-group textarea:focus {
+    border-color: #0059b3;
+    box-shadow: 0 0 0 2px rgba(0,89,179,0.15);
+}
+
+/* Buttons */
+#returnModal .send-btn {
+    width: 100%;
+    background-color: #003366;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 10px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+#returnModal .send-btn:hover {
+    background-color: #0059b3;
+}
+
+/* Cancel link */
+#returnModal .cancel-link {
+    color: #003366;
+    font-size: 13px;
+    text-decoration: none;
+    margin-top: 10px;
+}
+
+#returnModal .cancel-link:hover {
+    text-decoration: underline;
+}
+
+#signObligationModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.4);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+#signObligationModal .add-document {
+    width: 500px;
+}
+
+#signPurchaseModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+#signPurchaseModal .add-document {
+    width: 600px;
+    background: white;
+    border-radius: 10px;
+    padding: 25px;
+}
+
+
+
+
+</style>
+
+</head>
+<body>
+<header>
+    <h1>💼 MBO Dashboard</h1>
+    <div class="header-right">
+        <div class="dropdown">
+            <button class="dropbtn">Document ▾</button>
+            <div class="dropdown-content">
+                <a href="{{ url_for('view_documents') }}">View Documents</a>
+                <a href="#">Add Document</a>
+                <a href="{{ url_for('audit_trail') }}">Audit Trail</a>
+            </div>
+        </div>
+        <a href="{{ url_for('logout') }}" class="logout">Logout</a>
+    </div>
+</header>
+
+<main>
+    <h2>Welcome, {{ username }}!</h2>
+    <p>This is the dashboard for the <strong>Municipal Budget Office (MBO)</strong>.</p>
+
+    <!-- Cards -->
+    <div class="cards">
+        <div class="card">
+            <h3>Total Documents</h3>
+            <p style="color: transparent;">—</p>
+        </div>
+
+        <div class="card">
+            <h3>Pending</h3>
+            <p style="color: transparent;">—</p>
+        </div>
+
+        <div class="card">
+            <h3>To Receive</h3>
+            <p style="color: transparent;">—</p>
+        </div>
+
+        <div class="card">
+            <h5>Received Documents</h5>
+            <h2>{{ received_docs_mbo }}</h2>
+        </div>
+
+
+        <div class="card" id="issuedCard">
+            <h5>Issued Control No.</h5>
+            <h2>{{ issued_count_mbo }}</h2>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <table>
+     <thead>
+    <tr>
+        <th>ID</th>
+        <th>Control No.</th>
+        <th>Document Name</th>
+        <th>Code</th>
+        <th>Program/Project Title</th>
+        <th>Sender</th> <!-- 🆕 Added -->
+        <th>Action</th>
+    </tr>
+</thead>
+
+
+       <tbody id="mboDocumentsTable">
+            <tr><td colspan="6">Loading...</td></tr>
+        </tbody>
+
+    </table>
+</main>
+
+<!-- Modals -->
+<!-- Issued Control Numbers Modal -->
+<div id="issuedModal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeModal">&times;</span>
+        <div class="modal-header">
+            <h5>Issued Control No.</h5>
+            <button id="receivedBtn" class="received-btn">Received Control Number</button>
+        </div>
+        <table id="issuedTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Control No.</th>
+                    <th>Program/Project Title</th>
+                    <th>Source of Fund</th>
+                    <th>Code</th>
+                    <th>Issued Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Received Control Numbers Modal -->
+<div id="receivedModal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeReceivedModal">&times;</span>
+        <h5>Received Control Numbers</h5>
+        <table id="receivedTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Control No.</th>
+                    <th>Program/Project Title</th>
+                    <th>Source of Fund</th>
+                    <th>Code</th>
+                    <th>Issued Date</th>
+                    <th>Received Date</th>
+                    <th>Received By</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+    <!-- Add Document Modal -->
+<div id="addDocumentModal" style="display: none;">
+        <div class="add-document">
+            <h3>Add Document</h3>
+
+            <form id="addDocumentForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="controlNumberSelect">Select here</label>
+                    <select id="controlNumberSelect" name="control_number" class="form-control">
+                        <option value="">--Select Here--</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="documentType">Document Type:</label>
+                    <select id="documentType" name="document_type">
+                        <option value="">--Select Here--</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="sendTo">Send to:</label>
+                    <select id="sendTo" name="send_to">
+                        <option value="">--Select Here--</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="uploadFile">Upload File:</label>
+                    <input type="file" id="uploadFile" name="document_file">
+                </div>
+
+                <div class="form-group">
+                    <label for="signatories">Signatories:</label>
+                    <select id="signatories" name="signatories">
+                        <option value="">--Select Here--</option>
+                    </select>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="send-btn">Send</button>
+                    <a href="#" id="cancelAddDocument" class="cancel-link">← Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+
+
+
+<!-- 🧾 MBO Received Documents Modal -->
+<div id="mboReceivedModal" class="modal">
+    <div class="modal-content">
+        <span id="closeMboReceivedModal" class="close">&times;</span>
+        <h2>Received Documents</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Control No.</th>
+                    <th>Code</th>
+                    <th>Document Type</th> <!-- 🆕 Added -->
+                    <th>Program/Project Title</th>
+                    <th>Document</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="mboReceivedDocsTableBody">
+                <!-- Rows loaded dynamically -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<!-- Return Document Modal -->
+<div id="returnModal">
+    <div class="add-document">
+
+        <h3>Return Document</h3>
+
+        <form id="returnDocumentForm">
+
+            <div class="form-group">
+                <label for="returnControlNo">Control No.</label>
+                <input type="text" id="returnControlNo" class="form-control" readonly>
+            </div>
+
+            <div class="form-group">
+                <label for="returnCode">Code</label>
+                <input type="text" id="returnCode" class="form-control" readonly>
+            </div>
+
+            <div class="form-group">
+                <label for="returnDocType">Document Type</label>
+                <input type="text" id="returnDocType" class="form-control" readonly>
+            </div>
+
+            <div class="form-group">
+                <label for="returnProgramTitle">Program Title</label>
+                <input type="text" id="returnProgramTitle" class="form-control" readonly>
+            </div>
+
+            <div class="form-group">
+                <label for="returnReason">Remarks:</label>
+                <textarea id="returnReason" class="form-control" style="height:120px;"></textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" id="confirmReturnBtn" class="send-btn">Return</button>
+                <a href="#" id="cancelReturn" class="cancel-link">← Cancel</a>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+
+<!-- Obligation Request Sign Modal -->
+<div id="signObligationModal" style="display: none;">
+    <div class="add-document">
+        <h3>Sign Obligation Request</h3>
+
+        <form id="signObligationForm">
+            <input type="hidden" id="signDocId">
+
+            <div class="form-group">
+                <label>Control No.</label>
+                <input type="text" id="signControlNo" readonly>
+            </div>
+
+            <div class="form-group">
+                <label>Code</label>
+                <input type="text" id="signCode" readonly>
+            </div>
+
+            <div class="form-group">
+                <label>Document Type</label>
+                <input type="text" id="signDocType" readonly>
+            </div>
+
+            <div class="form-group">
+                <label>Program Title</label>
+                <input type="text" id="signProgramTitle" readonly>
+            </div>
+
+            <div class="form-group">
+                <label>Obligation Request No.</label>
+                <input type="text" id="signObRNo">
+            </div>
+
+            <div class="form-group">
+                <label>Remarks</label>
+                <textarea id="signRemarks" rows="4"></textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="send-btn" onclick="submitObligationSign()">Sign</button>
+                <a href="#" id="cancelSignObligation" class="cancel-link">← Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- Purchase Request Sign Modal -->
+<div id="signPurchaseModal" class="modal-overlay" style="display: none;">
+    <div class="add-document">
+        <h3>Sign Purchase Request</h3>
+
+        <form id="signPurchaseForm">
+            <input type="hidden" id="signPRDocId">
+
+            <div class="form-group">
+                <label>Control No.</label>
+                <input type="text" id="signPRControlNo" readonly>
+            </div>
+
+            <div class="form-group">
+                <label>Code</label>
+                <input type="text" id="signPRCode" readonly>
+            </div>
+
+            <div class="form-group">
+                <label>Document Type</label>
+                <input type="text" id="signPRDocType" readonly>
+            </div>
+
+            <div class="form-group">
+                <label>Program Title</label>
+                <input type="text" id="signPRProgramTitle" readonly>
+            </div>
+
+            <div class="form-group">
+                <label>Purchase Request No.</label>
+                <input type="text" id="signPRNo">
+            </div>
+
+            <div class="form-group">
+                <label>Remarks</label>
+                <textarea id="signPRRemarks" rows="4"></textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="send-btn" onclick="submitPurchaseSign()">Sign</button>
+                <a href="#" id="cancelSignPurchase" class="cancel-link">← Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const issuedModal = document.getElementById("issuedModal");
+    const receivedModal = document.getElementById("receivedModal");
+    const closeModal = document.getElementById("closeModal");
+    const closeReceivedModal = document.getElementById("closeReceivedModal");
+    const issuedCard = document.getElementById("issuedCard");
+    const receivedBtn = document.getElementById("receivedBtn");
+    const issuedTableBody = document.querySelector("#issuedTable tbody");
+    const receivedTableBody = document.querySelector("#receivedTable tbody");
+    const username = "{{ username }}";
+
+    // 🔄 Refresh Issued Count (MBO)
+    function refreshIssuedCount() {
+        fetch("/get_issued_count_mbo")
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.querySelector("#issuedCard h2").textContent = data.issued_count;
+                }
+            })
+            .catch(error => console.error("Error updating issued count:", error));
+    }
+
+    // 🗂️ Show Issued Control Numbers Modal (MBO)
+    issuedCard.addEventListener("click", async () => {
+        await loadIssuedControlNumbers();
+        issuedModal.style.display = "block";
+    });
+
+    // 🗂️ Show Received Control Numbers Modal (MBO)
+    receivedBtn.addEventListener("click", async () => {
+        await loadReceivedControlNumbers();
+        receivedModal.style.display = "block";
+    });
+
+    // ❌ Close Modals
+    closeModal.onclick = () => (issuedModal.style.display = "none");
+    closeReceivedModal.onclick = () => (receivedModal.style.display = "none");
+
+    window.onclick = (e) => {
+        if (e.target === issuedModal) issuedModal.style.display = "none";
+        if (e.target === receivedModal) receivedModal.style.display = "none";
+    };
+
+    // 📋 Load Issued Control Numbers (MBO)
+    async function loadIssuedControlNumbers() {
+        const res = await fetch("/issued_control_numbers_mbo");
+        const data = await res.json();
+        issuedTableBody.innerHTML = "";
+
+        const unreceived = data.filter(doc => doc.received == 0);
+
+        if (!unreceived.length) {
+            issuedTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center;">No issued control numbers found.</td></tr>`;
+            return;
+        }
+
+        unreceived.forEach((doc, i) => {
+            const codeWithControl = `${doc.code || ""}${doc.code && doc.control_no ? " - " : ""}${doc.control_no || ""}`;
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${i + 1}</td>
+                <td>${doc.control_no}</td>
+                <td>${doc.program || "—"}</td>
+                <td>${doc.source_of_fund || "—"}</td>
+                <td>${codeWithControl || "—"}</td>
+                <td>${doc.assigned_date || "—"}</td>
+                <td><button class='view-btn receive-btn' data-control='${doc.control_no}'>📥 Receive</button></td>
+            `;
+            issuedTableBody.appendChild(row);
+        });
+    }
+
+    // 📋 Load Received Control Numbers (MBO)
+    async function loadReceivedControlNumbers() {
+        const res = await fetch("/received_control_numbers_mbo");
+        const data = await res.json();
+        receivedTableBody.innerHTML = "";
+
+        if (!data.length) {
+            receivedTableBody.innerHTML = `<tr><td colspan="9" style="text-align:center;">No received control numbers found.</td></tr>`;
+            return;
+        }
+
+        data.forEach((item, i) => {
+            const codeWithControl = `${item.code || ""}${item.code && item.control_no ? " - " : ""}${item.control_no || ""}`;
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${i + 1}</td>
+                <td>${item.control_no}</td>
+                <td>${item.program || "—"}</td>
+                <td>${item.source_of_fund || "—"}</td>
+                <td>${codeWithControl}</td>
+                <td>${item.assigned_date || "—"}</td>
+                <td>${item.received_date || "—"}</td>
+                <td>${item.received_by || "—"}</td>
+                <td style="color: green; font-weight: bold;">Received</td>
+            `;
+            receivedTableBody.appendChild(row);
+        });
+    }
+
+    // ------------------ Populate Control Number Dropdown (MBO) ------------------
+    async function loadReceivedControlNumbersDropdown() {
+        try {
+            const res = await fetch("/get_received_control_numbers_mbo");
+            const data = await res.json();
+            const dropdown = document.getElementById("controlNumberSelect");
+
+            if (data.success) {
+                dropdown.innerHTML = '<option value="">--Select Here--</option>';
+                data.data.forEach(item => {
+                    const opt = document.createElement("option");
+                    opt.value = item.value;
+                    opt.textContent = item.label;
+                    dropdown.appendChild(opt);
+                });
+            } else {
+                console.error(data.error);
+            }
+        } catch (err) {
+            console.error("Error loading control numbers:", err);
+        }
+    }
+
+    // ✅ Initial load for dropdown
+    loadReceivedControlNumbersDropdown();
+
+    // 📥 Receive Control Number (MBO)
+    issuedTableBody.addEventListener("click", async (e) => {
+        if (e.target.classList.contains("receive-btn")) {
+            const controlNo = e.target.getAttribute("data-control");
+            const confirmReceive = confirm(`Mark control number ${controlNo} as received?`);
+            if (!confirmReceive) return;
+
+            const res = await fetch("/receive_control_number_mbo", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ control_no: controlNo, received_by: username })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                alert("✅ Control number successfully marked as received!");
+                e.target.closest("tr").remove();
+                await loadReceivedControlNumbers();
+                await loadReceivedControlNumbersDropdown();
+                refreshIssuedCount();
+            } else {
+                alert("❌ Failed to update. Please try again.");
+            }
+        }
+    });
+
+    // ------------------ Dependent Dropdown Logic ------------------
+    const controlNumberSelect = document.getElementById("controlNumberSelect");
+    const documentTypeSelect = document.getElementById("documentType");
+    const sendToSelect = document.getElementById("sendTo");
+    const signatoriesSelect = document.getElementById("signatories");
+
+    sendToSelect.disabled = true;
+    signatoriesSelect.disabled = true;
+
+    const sendToMap = {
+        "Activity Design": ["MBO", "MTO", "MMO"],
+        "Purchase Request": ["BAC Secretariat", "MBO", "MMO"],
+        "Request for Quotation/Canvass Form": ["BAC Secretariat", "Suppliers"],
+        "Abstract of Quotation": ["BAC", "MMO"],
+        "Purchase Order": ["Supplier", "MMO"],
+        "Inspection and Acceptance": ["INSPECTOR", "GSO"],
+        "Obligation Request": ["MBO"],
+        "Disbursement Voucher": ["OMAcc", "MTO", "MMO"]
+    };
+
+    const signatoriesMap = {
+        "MBO": ["Municipal Budget Officer", "Budget Staff"],
+        "MTO": ["Municipal Treasurer", "Treasury Clerk"],
+        "MMO": ["Municipal Mayor", "Executive Secretary"],
+        "BAC Secretariat": ["BAC Secretariat Head", "Procurement Officer"],
+        "BAC": ["BAC Chairperson", "BAC Member"],
+        "GSO": ["General Services Officer", "Supply Officer"],
+        "INSPECTOR": ["Inspection Officer"],
+        "Supplier": ["Supplier Representative"],
+        "OMAcc": ["Officer-in-Charge, Accounting"]
+    };
+
+    // When Control Number changes
+    controlNumberSelect.addEventListener("change", function () {
+        const selectedValue = this.options[this.selectedIndex].text;
+
+        documentTypeSelect.innerHTML = '<option value="">--Select Here--</option>';
+        sendToSelect.innerHTML = '<option value="">--Select Here--</option>';
+        signatoriesSelect.innerHTML = '<option value="">--Select Here--</option>';
+        sendToSelect.disabled = true;
+        signatoriesSelect.disabled = true;
+
+        if (selectedValue.startsWith("PRN")) {
+            ["Activity Design","Purchase Request","Request for Quotation/Canvass Form","Abstract of Quotation","Purchase Order","Inspection and Acceptance","Obligation Request","Disbursement Voucher"]
+                .forEach(opt => {
+                    const option = document.createElement("option");
+                    option.value = opt;
+                    option.textContent = opt;
+                    documentTypeSelect.appendChild(option);
+                });
+        } else if (selectedValue.startsWith("SVP")) {
+            ["Activity Design","Purchase Request","Abstract of Quotation","Inspection and Acceptance","Obligation Request","Disbursement Voucher"]
+                .forEach(opt => {
+                    const option = document.createElement("option");
+                    option.value = opt;
+                    option.textContent = opt;
+                    documentTypeSelect.appendChild(option);
+                });
+        }
+    });
+
+    // When Document Type changes
+    documentTypeSelect.addEventListener("change", function () {
+        const selectedType = this.value;
+        const recipients = sendToMap[selectedType] || [];
+        sendToSelect.innerHTML = '<option value="">--Select Here--</option>';
+        signatoriesSelect.innerHTML = '<option value="">--Select Here--</option>';
+        signatoriesSelect.disabled = true;
+
+        if (recipients.length > 0) {
+            sendToSelect.disabled = false;
+            recipients.forEach(r => {
+                const opt = document.createElement("option");
+                opt.value = r;
+                opt.textContent = r;
+                sendToSelect.appendChild(opt);
+            });
+        } else {
+            sendToSelect.disabled = true;
+        }
+    });
+
+    // When Send To changes
+    sendToSelect.addEventListener("change", function () {
+        const selectedOffice = this.value;
+        const signatories = signatoriesMap[selectedOffice] || [];
+        signatoriesSelect.innerHTML = '<option value="">--Select Here--</option>';
+
+        if (signatories.length > 0) {
+            signatoriesSelect.disabled = false;
+            signatories.forEach(sig => {
+                const opt = document.createElement("option");
+                opt.value = sig;
+                opt.textContent = sig;
+                signatoriesSelect.appendChild(opt);
+            });
+        } else {
+            signatoriesSelect.disabled = true;
+        }
+    });
+
+    // ------------------ Add Document Modal Logic ------------------
+    const addDocumentLink = document.querySelector('.dropdown-content a[href="#"]');
+    const addDocumentModal = document.getElementById("addDocumentModal");
+    const cancelAddDocument = document.getElementById("cancelAddDocument");
+    const addDocumentForm = document.getElementById("addDocumentForm");
+
+    addDocumentLink.addEventListener("click", (e) => {
+        e.preventDefault();
+        addDocumentModal.style.display = "flex";
+    });
+
+    cancelAddDocument.addEventListener("click", (e) => {
+        e.preventDefault();
+        addDocumentModal.style.display = "none";
+    });
+
+    window.addEventListener("click", (e) => {
+        if (e.target === addDocumentModal) {
+            addDocumentModal.style.display = "none";
+        }
+    });
+
+// 📝 Add Document Form Submission (MBO)
+if (addDocumentForm) {
+    addDocumentForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        console.log("Form values:", Object.fromEntries(formData.entries()));
+
+        try {
+            const response = await fetch("/add_document_mbo", { method: "POST", body: formData });
+            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+
+            const result = await response.json();
+            console.log("Server Response:", result);
+
+            if (result.success) {
+                alert("✅ Document added successfully!");
+                addDocumentModal.style.display = "none";
+                this.reset();
+                loadReceivedControlNumbersDropdown(); // refresh dropdown
+            } else {
+                alert("❌ " + (result.error || "Unknown error"));
+            }
+        } catch (err) {
+            console.error("🔥 Submission failed:", err);
+            alert("❌ Submission failed — check console for details.");
+        }
+    });
+}
+
+});
+
+// ------- MBO DOCUMENTS--------
+
+  document.addEventListener("DOMContentLoaded", () => {
+    fetch("/mbo_documents")
+        .then(res => res.json())
+        .then(data => {
+            const tableBody = document.getElementById("mboDocumentsTable");
+            tableBody.innerHTML = "";
+
+            if (data.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center;">No records found</td></tr>`;
+                return;
+            }
+
+            data.forEach(doc => {
+                const sender = `${doc.created_by || ''} - ${doc.office || ''}`;
+                const row = `
+                    <tr data-id="${doc.id}">
+                        <td>${doc.id}</td>
+                        <td>${doc.control_number}</td>
+                        <td>${doc.document_type}</td>
+                        <td>${doc.code} - ${doc.control_number}</td>
+                        <td>${doc.program_title || ''}</td>
+                        <td>${sender}</td>
+                        <td>
+                            <button class="btn-action btn-receive" title="Receive" ${doc.status === 'Received' ? 'disabled' : ''}>
+                                📥 ${doc.status === 'Received' ? 'Received' : 'Receive'}
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tableBody.insertAdjacentHTML('beforeend', row);
+            });
+
+            // Add event listeners for all receive buttons
+            document.querySelectorAll(".btn-receive").forEach(button => {
+                button.addEventListener("click", function() {
+                    const row = this.closest("tr");
+                    const docId = row.dataset.id;
+
+                   fetch(`/receive_document/${docId}`, { method: "POST" })
+                            .then(res => res.json())
+                            .then(result => {
+                                if (result.success) {
+                                    // Remove the row from the table
+                                    const row = this.closest("tr");
+                                    row.classList.add("fade-out");
+
+                                    // Smoothly remove after animation
+                                    setTimeout(() => row.remove(), 300);
+
+                                    // Optional: small toast alert (instead of alert box)
+                                    console.log(`✅ Document ID ${docId} successfully received and removed.`);
+                                } else {
+                                    alert("❌ Error: " + result.error);
+                                }
+                            })
+                            .catch(err => {
+                                console.error("Error receiving document:", err);
+                                alert("Failed to receive document.");
+                            });
+
+                });
+            });
+        })
+        .catch(err => {
+            console.error("Error loading documents:", err);
+        });
+});
+
+
+/// ---------- RECEIVED DOCUMENTS LIST (for MBO Modal) ----------
+document.addEventListener("DOMContentLoaded", function () {
+    const mboReceivedModal = document.getElementById("mboReceivedModal");
+    const closeMboReceivedModal = document.getElementById("closeMboReceivedModal");
+    const receivedCard = document.querySelector(".card h5:nth-child(1)").parentElement;
+    const receivedCountElement = receivedCard.querySelector("h2");
+
+    // ✅ Store documents globally inside this scope
+    window.mboDocs = [];
+
+    // ✅ Function to update the count dynamically
+    function updateMboReceivedCount() {
+        fetch("/get_mbo_received_count")
+            .then(response => response.json())
+            .then(data => {
+                receivedCountElement.textContent = data.count;
+            })
+            .catch(err => console.error("Error updating received count:", err));
+    }
+
+    // ✅ Make accessible to other scripts
+    window.updateMboReceivedCount = updateMboReceivedCount;
+
+    // Auto-refresh every 2 seconds
+    setInterval(updateMboReceivedCount, 2000);
+
+   // Open new page instead of modal
+receivedCard.addEventListener("click", () => {
+    window.location.href = "/received_documents";   // Flask route
+});
+
+
+    // Close modal
+    closeMboReceivedModal.addEventListener("click", () => {
+        mboReceivedModal.style.display = "none";
+    });
+
+    window.addEventListener("click", (event) => {
+        if (event.target === mboReceivedModal) {
+            mboReceivedModal.style.display = "none";
+        }
+    });
+
+    // LOAD DOCUMENT LIST INTO TABLE
+    function loadMboReceivedDocuments() {
+        fetch("/mbo_received_documents")
+            .then(response => response.json())
+            .then(data => {
+                window.mboDocs = data; // store globally
+                const tbody = document.getElementById("mboReceivedDocsTableBody");
+                tbody.innerHTML = "";
+
+                if (data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">No received documents found.</td></tr>`;
+                    return;
+                }
+
+                data.forEach(doc => {
+                    const viewUrl = `/uploads/${doc.filename}`;
+                    const downloadUrl = `/download/${doc.filename}`;
+
+                    const row = `
+                        <tr>
+                            <td>${doc.id}</td>
+                            <td>${doc.control_number}</td>
+                            <td>${doc.code ? `${doc.code}-${doc.control_number}` : doc.control_number}</td>
+                            <td>${doc.document_type || '-'}</td>
+                            <td>${doc.program_title || '-'}</td>
+                            <td>
+                                <button class="icon-btn view-btn" title="View" onclick="window.open('${viewUrl}', '_blank')">
+                                    <i class="fa fa-eye"></i>
+                                </button>
+                                <button class="icon-btn download-btn" title="Download" onclick="window.location.href='${downloadUrl}'">
+                                    <i class="fa fa-download"></i>
+                                </button>
+                                <button class="icon-btn save-btn" title="Save" onclick="saveDocument(${doc.id})">
+                                    <i class="fa fa-save"></i>
+                                </button>
+                            </td>
+                            <td>
+                                <button class="icon-btn return-btn" title="Return" onclick="returnDocument(${doc.id})">
+                                    <i class="fa fa-undo"></i>
+                                </button>
+                                <button class="icon-btn sign-btn" title="Sign" onclick="signDocument(${doc.id})">
+                                    <i class="fa fa-pen"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.insertAdjacentHTML("beforeend", row);
+                });
+            })
+            .catch(err => console.error("Error loading received documents:", err));
+    }
+
+    // ✅ Make globally accessible
+    window.loadMboReceivedDocuments = loadMboReceivedDocuments;
+
+    // Initial count on page load
+    updateMboReceivedCount();
+
+    // ===== SAVE DOCUMENT =====
+    window.saveDocument = async function (docId) {
+        const doc = window.mboDocs.find(d => d.id === docId);
+        if (!doc) {
+            alert("Document not found.");
+            return;
+        }
+
+        const payload = {
+            control_number: doc.control_number,
+            code: doc.code,
+            document_type: doc.document_type,
+            program_title: doc.program_title,
+            file_path: `/uploads/${doc.filename}`
+        };
+
+        try {
+            const response = await fetch("/save_document", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                alert("✅ Document saved successfully!");
+            } else {
+                alert("❌ Failed to save: " + (result.error || "Unknown error"));
+            }
+        } catch (error) {
+            console.error("Save error:", error);
+            alert("❌ Network or server error.");
+        }
+    };
+
+
+
+
+    /* ============================================================
+       🟦 RETURN DOCUMENT (INTEGRATED FINAL VERSION)
+       ============================================================ */
+
+    window.selectedReturnId = null;
+
+    window.returnDocument = function (docId) {
+        window.selectedReturnId = docId;
+
+        const modal = document.getElementById("returnModal");
+        if (!modal) return;
+
+        const doc = window.mboDocs.find(d => String(d.id) === String(docId));
+
+        const setVal = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.value = val ?? "";
+        };
+
+        if (doc) {
+            setVal("returnControlNo", doc.control_number);
+            setVal("returnCode", `${doc.code}-${doc.control_number}`);
+            setVal("returnDocType", doc.document_type);
+            setVal("returnProgramTitle", doc.program_title);
+        }
+
+        document.getElementById("returnReason").value = "";
+        modal.style.display = "flex";
+        document.getElementById("returnReason").focus();
+    };
+
+    // Setup confirm and cancel
+    const returnModal = document.getElementById("returnModal");
+
+    document.getElementById("cancelReturn").addEventListener("click", e => {
+        e.preventDefault();
+        returnModal.style.display = "none";
+    });
+
+    returnModal.addEventListener("click", e => {
+        if (e.target === returnModal) returnModal.style.display = "none";
+    });
+
+    document.getElementById("confirmReturnBtn").addEventListener("click", () => {
+        const reason = document.getElementById("returnReason").value.trim();
+
+        if (!reason) {
+            alert("Please enter a reason.");
+            return;
+        }
+
+        const id = window.selectedReturnId;
+
+        fetch(`/return_document/${id}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ reason })
+        })
+            .then(res => res.json())
+            .then(data => {
+
+                if (data.success) {
+                    alert("✔ Document returned successfully.");
+                    returnModal.style.display = "none";
+
+                    // 🔄 Refresh Received Documents Table
+                    loadMboReceivedDocuments();
+
+                    // 🔄 Refresh Count on the Dashboard Card
+                    updateMboReceivedCount();
+                } else {
+                    alert("Error: " + (data.error || "Unknown error"));
+                }
+
+            })
+            .catch(err => {
+                console.error("Return error:", err);
+                alert("An error occurred while returning the document.");
+            });
+    });
+
+});
+
+
+
+/// ===== SIGN DOCUMENT =====
+window.signDocument = function (docId) {
+    const doc = window.mboDocs.find(d => d.id === docId);
+
+    if (!doc) {
+        alert("Document not found.");
+        return;
+    }
+
+    console.log("Signing:", doc); // Debugging
+
+    // ==============================================================
+    // OBLIGATION REQUEST SIGNING
+    // ==============================================================
+    if (doc.document_type === "Obligation Request") {
+
+        // Fill modal fields
+        document.getElementById("signDocId").value = doc.id;
+        document.getElementById("signControlNo").value = doc.control_number;
+        document.getElementById("signCode").value = doc.code ? `${doc.code}-${doc.control_number}` : doc.control_number;
+        document.getElementById("signDocType").value = doc.document_type;
+        document.getElementById("signProgramTitle").value = doc.program_title;
+
+        // Show Obligation Request modal
+        document.getElementById("signObligationModal").style.display = "flex";
+        return;
+    }
+
+
+    // ==============================================================
+    // PURCHASE REQUEST SIGNING
+    // ==============================================================
+    if (doc.document_type === "Purchase Request") {
+
+        // Fill Purchase Request modal fields
+        document.getElementById("signPRDocId").value = doc.id;
+        document.getElementById("signPRControlNo").value = doc.control_number;
+        document.getElementById("signPRCode").value = doc.code ? `${doc.code}-${doc.control_number}` : doc.control_number;
+        document.getElementById("signPRDocType").value = doc.document_type;
+        document.getElementById("signPRProgramTitle").value = doc.program_title;
+
+        // Show Purchase Request modal
+        document.getElementById("signPurchaseModal").style.display = "flex";
+        return;
+    }
+
+
+    // ==============================================================
+    // OTHER DOCUMENT TYPES (NOT SUPPORTED FOR SIGNING)
+    // ==============================================================
+    alert("❗ This document can't be signed here.\nType: " + doc.document_type);
+};
+
+
+
+    function signDocument(docId) {
+    // Fetch document details based on ID
+    fetch(`/get_document/${docId}`)
+        .then(res => res.json())
+        .then(doc => {
+
+            if (doc.document_type !== "Obligation Request") {
+                alert("Signing modal only applies to Obligation Requests.");
+                return;
+            }
+
+            // Fill modal fields
+            document.getElementById("signDocId").value = doc.id;
+            document.getElementById("signControlNo").value = doc.control_number;
+            document.getElementById("signCode").value = doc.code + "-" + doc.control_number;
+            document.getElementById("signDocType").value = doc.document_type;
+            document.getElementById("signProgramTitle").value = doc.program_title;
+
+            // Show modal
+            document.getElementById("signObligationModal").style.display = "flex";
+        });
+}
+
+    document.getElementById("cancelSignObligation").addEventListener("click", (e) => {
+    e.preventDefault();
+    document.getElementById("signObligationModal").style.display = "none";
+});
+
+    function submitObligationSign() {
+    const payload = {
+        id: document.getElementById("signDocId").value,
+        obligation_no: document.getElementById("signObRNo").value,
+        remarks: document.getElementById("signRemarks").value
+    };
+
+    fetch("/sign_obligation_request", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(result => {
+        if (result.success) {
+            alert("Document signed successfully!");
+            document.getElementById("signObligationModal").style.display = "none";
+        } else {
+            alert("Error: " + result.error);
+        }
+    });
+}
+
+
+
+
+
+
+
+</script>
+
+</body>
+</html>
