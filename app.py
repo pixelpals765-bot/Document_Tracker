@@ -50,10 +50,13 @@ def audit_trail():
 
 def log_audit_action(username, office, action):
     conn = get_db_connection()
+    current_time = datetime.now().strftime('%Y-%m-%d %I:%M:%S %p')
+
     conn.execute("""
         INSERT INTO audit_trail (username, office, action, datetime)
-        VALUES (?, ?, ?, strftime('%Y-%m-%d %I:%M:%S %p', 'now', 'localtime'))
-    """, (username, office, action))
+        VALUES (?, ?, ?, ?)
+    """, (username, office, action, current_time))
+
     conn.commit()
     conn.close()
 
