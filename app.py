@@ -1,6 +1,7 @@
 import os
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+
 
 from flask import Flask, render_template, request, redirect, session, url_for, flash, jsonify,send_from_directory, abort
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -50,8 +51,17 @@ def audit_trail():
 
 def log_audit_action(username, office, action):
     conn = get_db_connection()
-    current_time = datetime.now().strftime('%Y-%m-%d %I:%M:%S %p')
 
+    # Get current UTC time
+    now_utc = datetime.utcnow()
+
+    # Convert to Philippine Time (UTC+8)
+    ph_time = now_utc + timedelta(hours=8)
+
+    # Format as string
+    current_time = ph_time.strftime('%Y-%m-%d %I:%M:%S %p')
+
+    # Insert into DB
     conn.execute("""
         INSERT INTO audit_trail (username, office, action, datetime)
         VALUES (?, ?, ?, ?)
