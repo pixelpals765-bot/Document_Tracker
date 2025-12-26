@@ -114,6 +114,27 @@ def init_db():
         )
     ''')
 
+    # ------------------ BACKUP DOCUMENTS TABLE ------------------
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS backup_documents (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            control_number TEXT,
+            code TEXT,
+            document_type TEXT,
+            
+            program_title TEXT,
+            send_to TEXT,
+            signatories TEXT,
+            file_path TEXT,
+            created_by TEXT,
+            created_at TEXT,
+            office TEXT,
+            status TEXT DEFAULT 'Pending',
+            received_by TEXT,
+            received_date TEXT
+        )
+    ''')
+
     # ------------------ CONTROL NUMBERS TABLE ------------------
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS control_numbers (
@@ -165,6 +186,7 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             control_number TEXT,
             code TEXT,
+            obr_number TEXT,        -- 🆕 added here
             document_type TEXT,
             program_title TEXT,
             returned_by TEXT,
@@ -187,6 +209,7 @@ def init_db():
             document_type TEXT,
             program_title TEXT,
             obligation_request_no TEXT,
+            file_path TEXT,                -- 🆕 added here
             date_obligated TEXT,
             obligated_by TEXT,
             status TEXT
@@ -205,13 +228,25 @@ def init_db():
             program_title TEXT,
             assigned_no TEXT,
             signed_by TEXT,
-            signed_office TEXT,        -- 🆕 added here
+            signed_office TEXT,
             signed_date TEXT,
             remarks TEXT,
             received_by TEXT,
-            received_office TEXT,      -- 🆕 added here
+            received_office TEXT,
             received_date TEXT,
-            status TEXT                -- 🆕 added status column
+            status TEXT
+        )
+    ''')
+
+    # ------------------------------------------------------------
+    # 🆕 NEW TABLE: SIGNATORIES (for Setup → Signatories)
+    # ------------------------------------------------------------
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS signatories (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            office TEXT,
+            designation TEXT
         )
     ''')
 

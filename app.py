@@ -1,5 +1,6 @@
 import os
 import sqlite3
+import mimetypes
 from datetime import datetime, timezone, timedelta
 
 
@@ -29,6 +30,16 @@ def get_db():
     conn.row_factory = sqlite3.Row
     return conn
 
+def get_active_users():
+    conn = get_db_connection()
+    users = conn.execute("""
+        SELECT username, office
+        FROM users
+        WHERE status = 'Online'
+        ORDER BY username
+    """).fetchall()
+    conn.close()
+    return users
 
 def is_admin():
     """Return True if the logged-in user is admin."""
@@ -42,13 +53,12 @@ def index():
     return redirect(url_for('login'))
 
 
+
 # ---------- AUDIT TRAIL FUNCTION ----------
 
 @app.route('/audit_trail')
 def audit_trail():
     return render_template('audit_trail.html')
-
-
 def log_audit_action(username, office, action):
     conn = get_db_connection()
 
@@ -86,8 +96,6 @@ def get_audit_trail():
     logs_list = [dict(log) for log in logs]
 
     return jsonify(logs_list)
-
-
 
 # ---------- LOGIN ----------
 @app.route('/login', methods=['GET', 'POST'])
@@ -164,13 +172,18 @@ def login():
     return render_template('login.html')
 
 
-
 # ---------- DASHBOARDS ----------
 @app.route('/admin')
 def admin_dashboard():
     if is_admin():
-        return render_template('admin_dashboard.html', username=session['username'])
+        active_users = get_active_users()
+        return render_template(
+            'admin_dashboard.html',
+            username=session['username'],
+            active_users=active_users
+        )
     return redirect(url_for('login'))
+
 
 
 @app.route('/user')
@@ -235,7 +248,6 @@ def add_user():
 
     return redirect(url_for('view_users'))
 
-
 # ---------- LOG OUT ----------
 @app.route('/logout')
 def logout():
@@ -253,8 +265,6 @@ def logout():
     return redirect(url_for('login'))
 
 
-
-
 # ---------- VIEW USERS ----------
 @app.route('/view_users')
 def view_users():
@@ -269,7 +279,6 @@ def view_users():
     conn.close()
 
     return render_template('view_users.html', users=users)
-
 
 # ---------- EDIT USERS ----------
 @app.route('/edit_users')
@@ -298,7 +307,6 @@ def edit_users():
 
     conn.close()
     return render_template('edit_users.html', users=all_users, message=message, highlight_id=highlight_id)
-
 
 # ---------- UPDATE USER ----------
 @app.route('/update_user', methods=['POST'])
@@ -425,15 +433,80 @@ def delete_user():
     flash("User deleted successfully!", "success")
     return redirect(url_for('edit_users'))
 
-
 # ---------- VIEW/AUDIT TRAIL /ASSIGN CTRL NO----------
 @app.route('/view_documents')
 def view_documents():
     # render_template('view_documents.html')
     pass
 
+@app.route('/setup_signatories')
+def setup_signatories():
+    if 'username' not in session:
+        return redirect(url_for('login'))
 
+    page = int(request.args.get("page", 1))
+    search = request.args.get("search", "").strip()
 
+    limit = 10
+    offset = (page - 1) * limit
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    # --- Search if query exists ---
+    if search:
+        cur.execute("""
+            SELECT * FROM signatories
+            WHERE name LIKE ? OR office LIKE ? OR designation LIKE ?
+            ORDER BY id ASC
+            LIMIT ? OFFSET ?
+        """, (f"%{search}%", f"%{search}%", f"%{search}%", limit, offset))
+
+        rows = cur.fetchall()
+
+        # Check for more rows
+        cur.execute("""
+            SELECT COUNT(*) FROM signatories
+            WHERE name LIKE ? OR office LIKE ? OR designation LIKE ?
+        """, (f"%{search}%", f"%{search}%", f"%{search}%"))
+
+    else:
+        cur.execute("""
+            SELECT * FROM signatories
+            ORDER BY id ASC
+            LIMIT ? OFFSET ?
+        """, (limit, offset))
+        rows = cur.fetchall()
+
+        # Count total rows
+        cur.execute("SELECT COUNT(*) FROM signatories")
+
+    total_rows = cur.fetchone()[0]
+    has_more = total_rows > (page * limit)
+
+    conn.close()
+
+    return render_template("setup_signatories.html",
+                           signatories=rows,
+                           page=page,
+                           has_more=has_more)
+
+@app.route('/add_signatory', methods=['POST'])
+def add_signatory():
+    name = request.form['name']
+    office = request.form['office']
+    designation = request.form['designation']
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO signatories (name, office, designation)
+        VALUES (?, ?, ?)
+    """, (name, office, designation))
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for('setup_signatories'))
 
 # ---------- ASSIGN CONTROL NUMBER WITH AUDIT TRAIL ----------
 @app.route("/assign_control_no", methods=["POST"])
@@ -474,7 +547,6 @@ def assign_control_no():
 
     return redirect(url_for("admin_dashboard"))
 
-
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     try:
@@ -492,7 +564,7 @@ def download_file(filename):
 
 
 
-# ---------- MBO DASHBOARD ----------m
+# ---------- MBO DASHBOARD ----------
 @app.route('/mbo_dashboard')
 def mbo_dashboard():
     if 'username' not in session:
@@ -501,8 +573,7 @@ def mbo_dashboard():
     conn = get_db_connection()
     cur = conn.cursor()
 
-    # If you still need the control_numbers table listing, keep this.
-    # Otherwise you can remove this block.
+    # --- Control numbers for MBO ---
     cur.execute("""
         SELECT * FROM control_numbers
         WHERE office = 'MBO'
@@ -510,7 +581,7 @@ def mbo_dashboard():
     """)
     mbo_control_numbers = cur.fetchall()
 
-    # --- Counts coming from control_numbers (optional) ---
+    # --- Counts from control_numbers ---
     cur.execute("""
         SELECT COUNT(*) FROM control_numbers
         WHERE office = 'MBO' AND (received = 0 OR received IS NULL)
@@ -523,29 +594,38 @@ def mbo_dashboard():
     """)
     completed_control_numbers = cur.fetchone()[0]
 
-    # --- NEW: counts coming from documents table (this is what /receive_document updates) ---
-    # Count documents sent to MBO that are pending (status NULL or 'Pending')
+    # --- Counts from documents table ---
+    # Pending documents (status NULL or 'Pending')
     cur.execute("""
         SELECT COUNT(*) FROM documents
         WHERE send_to = 'MBO' AND (status IS NULL OR status = 'Pending')
     """)
     pending_docs = cur.fetchone()[0]
 
-    # Count documents that were received by MBO (status = 'Received')
+    # Total received documents (all types)
     cur.execute("""
         SELECT COUNT(*) FROM documents
         WHERE send_to = 'MBO' AND status = 'Received'
     """)
     received_docs = cur.fetchone()[0]
 
-    # Alternative received count using received_date (uncomment to use instead)
-    # cur.execute("""
-    #     SELECT COUNT(*) FROM documents
-    #     WHERE send_to = 'MBO' AND received_date IS NOT NULL
-    # """)
-    # received_docs = cur.fetchone()[0]
+    # --- Separate counts by document_type ---
+    cur.execute("""
+        SELECT COUNT(*) FROM documents
+        WHERE send_to = 'MBO' AND status = 'Received' AND document_type = 'Obligation'
+    """)
+    forObligationCount = cur.fetchone()[0]
 
-    # Total documents for MBO (pending + received)
+    cur.execute("""
+        SELECT COUNT(*) FROM documents
+        WHERE send_to = 'MBO' AND status = 'Received' AND document_type = 'Signature'
+    """)
+    forSignatureCount = cur.fetchone()[0]
+
+    # Total received documents for the card (sum of obligation + signature)
+    total_received_docs = forObligationCount + forSignatureCount
+
+    # Total documents (pending + received)
     total_docs_for_mbo = pending_docs + received_docs
 
     conn.close()
@@ -553,22 +633,23 @@ def mbo_dashboard():
     return render_template(
         'mbo_dashboard.html',
         username=session.get('username'),
-        # control_numbers (optional)
+
+        # Control numbers
         issued_docs_mbo=mbo_control_numbers,
         pending_control_numbers_mbo=pending_control_numbers,
         completed_control_numbers_mbo=completed_control_numbers,
+        issued_count_mbo=pending_control_numbers,  # optional
 
-        # documents table counts (used for the Received Documents card)
+        # Documents counts
         total_docs_mbo=total_docs_for_mbo,
         pending_docs_mbo=pending_docs,
         received_docs_mbo=received_docs,
 
-        # if you still need a separate issued control no count from control_numbers:
-        issued_count_mbo=pending_control_numbers
+        # Separate counts by type
+        forObligationCount=forObligationCount,
+        forSignatureCount=forSignatureCount,
+        total_received_docs=total_received_docs
     )
-
-
-
 
 # ---------- GET UPDATED ISSUED COUNT (for AJAX refresh) ----------
 @app.route("/get_issued_count_mbo", methods=["GET"])
@@ -597,8 +678,6 @@ def get_mbo_received_count():
     ).fetchone()[0]
     conn.close()
     return jsonify({"count": count})
-
-
 
 # ---------- ISSUED CONTROL NUMBERS ----------
 @app.route('/issued_control_numbers_mbo')
@@ -641,7 +720,6 @@ def issued_control_numbers_mbo():
     ]
 
     return jsonify(issued)
-
 
 # ---------- RECEIVE CONTROL NUMBER (API — Called from JS) ----------
 @app.route("/receive_control_number_mbo", methods=["POST"])
@@ -690,9 +768,6 @@ def receive_control_number_mbo():
     finally:
         conn.close()
 
-
-
-
 # ---------- RECEIVE DOCUMENT (Legacy - kept for redirect use if needed) ----------
 @app.route('/receive_document_mbo/<control_no>', methods=['POST'])
 def receive_document_mbo(control_no):
@@ -709,7 +784,6 @@ def receive_document_mbo(control_no):
 
     flash(f"Control No. {control_no} marked as received.", "success")
     return redirect(url_for('mbo_dashboard'))
-
 
 # ---------- RECEIVED CONTROL NUMBERS ----------
 @app.route('/received_control_numbers_mbo')
@@ -756,7 +830,6 @@ def received_control_numbers_mbo():
     except Exception as e:
         print("Error fetching received control numbers (MBO):", e)
         return jsonify({'error': str(e)}), 500
-
 
 # ---------- ADD DOCUMENT (MBO) ----------
 @app.route("/add_document_mbo", methods=["POST"])
@@ -816,7 +889,6 @@ def add_document_mbo():
 
     return jsonify({"success": True})
 
-
 # ---------- GET RECEIVED CONTROL NUMBERS (for dropdown) ----------
 @app.route("/get_received_control_numbers_mbo")
 def get_received_control_numbers_mbo():
@@ -849,8 +921,6 @@ def get_received_control_numbers_mbo():
 
     return jsonify({"success": True, "data": data})
 
-
-
 @app.route('/mbo_documents')
 def mbo_documents():
     if 'username' not in session:
@@ -868,7 +938,6 @@ def mbo_documents():
     conn.close()
 
     return jsonify([dict(row) for row in documents])
-
 
 @app.route("/received_documents")
 def received_documents():
@@ -889,20 +958,39 @@ def count_for_signature():
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
 
-    row = cursor.execute("""
+    # -----------------------------
+    # 1️⃣ Count from documents table
+    #    ❌ EXCLUDE Pending
+    # -----------------------------
+    docs_row = cursor.execute("""
         SELECT COUNT(*) AS total
         FROM documents
         WHERE send_to = ?
           AND document_type != 'Obligation Request'
-          AND (status IS NULL OR status != 'Returned')
+          AND status = 'Received'     -- ✅ only count if already received
     """, (office,)).fetchone()
+
+    documents_count = docs_row["total"]
+
+    # -----------------------------
+    # 2️⃣ Count from for_obligation table
+    # -----------------------------
+    obr_row = cursor.execute("""
+        SELECT COUNT(*) AS total
+        FROM for_obligation
+        WHERE TRIM(UPPER(status)) = 'OBLIGATED'
+    """).fetchone()
+
+    obligation_count = obr_row["total"]
 
     conn.close()
 
-    return jsonify({"count": row["total"]})
+    # -----------------------------
+    # 3️⃣ TOTAL
+    # -----------------------------
+    total_count = documents_count + obligation_count
 
-
-
+    return jsonify({"count": total_count})
 
 # ----------- RECEIVED DOCUMENTS (MBO) -------------
 @app.route('/receive_document/<int:id>', methods=['POST'])
@@ -982,8 +1070,6 @@ def receive_document(id):
         conn.close()
         return jsonify({"success": False, "error": str(e)})
 
-
-
 # ---------- FOR OBLIGATION ----------
 @app.route('/for_obligation')
 def for_obligation_page():
@@ -1005,7 +1091,6 @@ def count_for_obligation():
 
     conn.close()
     return jsonify({"count": count})
-
 
 # ---------- FOR OBLIGATION TABLE----------
 @app.route("/get_for_obligation")
@@ -1044,7 +1129,7 @@ def get_single_obligation(doc_id):
     else:
         return jsonify({"success": False, "error": "Document not found"}), 404
 
-
+# ---------- SAVE OBLIGATION  ----------
 @app.route("/save_obligation", methods=["POST"])
 def save_obligation():
     data = request.json
@@ -1064,14 +1149,35 @@ def save_obligation():
         conn = get_db_connection()
         cursor = conn.cursor()
 
+        # ------------------------------------------------------------
+        # 🔹 GET FILE PATH FROM ORIGINAL DOCUMENT SOURCE
+        # ------------------------------------------------------------
+        file_row = cursor.execute("""
+            SELECT file_path
+            FROM documents
+            WHERE id = ?
+        """, (doc_id,)).fetchone()
+
+        file_path = file_row["file_path"] if file_row else None
+
+        # ------------------------------------------------------------
+        # 🔹 UPDATE for_obligation (INCLUDING file_path)
+        # ------------------------------------------------------------
         cursor.execute("""
             UPDATE for_obligation
             SET obligation_request_no = ?,
+                file_path = ?,               -- 🆕 store file path
                 date_obligated = ?,
                 obligated_by = ?,
                 status = 'Obligated'
             WHERE id = ?
-        """, (obligation_no, date_obligated, obligated_by, doc_id))
+        """, (
+            obligation_no,
+            file_path,
+            date_obligated,
+            obligated_by,
+            doc_id
+        ))
 
         conn.commit()
         conn.close()
@@ -1080,6 +1186,26 @@ def save_obligation():
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
+
+# ---------- pulling obr number from for_obligation ----------
+@app.route("/get_obligation_no/<control_no>")
+def get_obligation_no(control_no):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    row = cursor.execute("""
+        SELECT obligation_request_no
+        FROM for_obligation
+        WHERE control_number = ?
+        ORDER BY id DESC
+        LIMIT 1
+    """, (control_no,)).fetchone()
+
+    conn.close()
+
+    return jsonify({
+        "obligation_request_no": row["obligation_request_no"] if row else ""
+    })
 
 # ---------- RECEIVED DOCUMENTS LIST (for MBO Modal) ----------
 @app.route('/mbo_received_documents')
@@ -1091,29 +1217,33 @@ def mbo_received_documents():
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
 
-    cursor.execute('''
-        SELECT 
-            id, 
-            control_number, 
-            code, 
-            program_title, 
-            document_type, 
+    # -----------------------------
+    # 1. FROM documents table
+    # -----------------------------
+    cursor.execute("""
+        SELECT
+            id,
+            control_number,
+            code,
+            program_title,
+            document_type,
             file_path,
             received_by
         FROM documents
-        WHERE send_to = 'MBO' AND status = 'Received'
+        WHERE send_to = 'MBO'
+          AND status = 'Received'
         ORDER BY received_date DESC
-    ''')
-    docs = cursor.fetchall()
-    conn.close()
+    """)
+    documents_rows = cursor.fetchall()
 
     result = []
-    for row in docs:
+
+    for row in documents_rows:
         file_path = row["file_path"] or ""
-        # Extract just the filename (e.g. "eBPILS-001.pdf" from "uploads\\eBPILS-001.pdf")
         filename = os.path.basename(file_path.replace("\\", "/")) if file_path else ""
 
         result.append({
+            "source": "documents",
             "id": row["id"],
             "control_number": row["control_number"],
             "code": row["code"],
@@ -1123,8 +1253,39 @@ def mbo_received_documents():
             "received_by": row["received_by"] or "-"
         })
 
-    return jsonify(result)
+    # -----------------------------
+    # 2. FROM for_obligation table
+    # -----------------------------
+    cursor.execute("""
+        SELECT
+            id,
+            control_number,
+            code,
+            program_title,
+            document_type,
+            status
+        FROM for_obligation
+        WHERE TRIM(UPPER(status)) = 'OBLIGATED'
+        ORDER BY date_obligated DESC
+    """)
 
+    obligation_rows = cursor.fetchall()
+    conn.close()
+
+    for row in obligation_rows:
+        result.append({
+            "source": "for_obligation",
+            "status": row["status"],  # ✅ IMPORTANT
+            "id": row["id"],
+            "control_number": row["control_number"],
+            "code": row["code"],
+            "program_title": row["program_title"],
+            "document_type": row["document_type"],
+            "filename": "",
+            "received_by": "MBO"
+        })
+
+    return jsonify(result)
 
 @app.route("/save_document", methods=["POST"])
 def save_document():
@@ -1164,6 +1325,7 @@ def save_document():
             "error": f"Document {full_code} ({document_type}) already saved."
         }), 400
 
+
     # Save document
     cursor.execute("""
         INSERT INTO saved_documents (
@@ -1193,7 +1355,6 @@ def save_document():
 
     return jsonify({"success": True, "message": f"Document {full_code} saved successfully!"})
 
-
 @app.route('/return_document/<int:doc_id>', methods=['POST'])
 def return_document(doc_id):
     if 'username' not in session or 'office' not in session:
@@ -1201,6 +1362,9 @@ def return_document(doc_id):
 
     data = request.get_json()
     remarks = data.get("reason", "").strip()
+
+    if not remarks:
+        return jsonify({"success": False, "error": "Remarks required"}), 400
 
     username = session['username']
     office = session['office']
@@ -1211,7 +1375,7 @@ def return_document(doc_id):
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
 
-    # Fetch original document info
+    # Fetch document FIRST (important before delete)
     cursor.execute("SELECT * FROM documents WHERE id = ?", (doc_id,))
     doc = cursor.fetchone()
 
@@ -1219,33 +1383,39 @@ def return_document(doc_id):
         conn.close()
         return jsonify({"success": False, "error": "Document not found"})
 
-    # Insert into returned_documents
+    # 1️⃣ Insert into returned_documents
     cursor.execute("""
-        INSERT INTO returned_documents 
-            (control_number, code, document_type, program_title, returned_by, remarks, returned_date, status)
+        INSERT INTO returned_documents
+            (control_number, code, document_type, program_title,
+             returned_by, remarks, returned_date, status)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     """, (
-        doc["control_number"], doc["code"], doc["document_type"],
-        doc["program_title"], returned_by, remarks, returned_date, "Returned"
+        doc["control_number"],
+        doc["code"],
+        doc["document_type"],
+        doc["program_title"],
+        returned_by,
+        remarks,
+        returned_date,
+        "Returned"
     ))
 
-    # Update main documents table
+    # 2️⃣ Remove from documents table (🔥 MAIN CHANGE)
     cursor.execute("""
-        UPDATE documents
-        SET status = 'Returned'
+        DELETE FROM documents
         WHERE id = ?
     """, (doc_id,))
 
-    # 🔥 ALSO UPDATE for_obligation table (fixes your issue)
+    # 3️⃣ Update for_obligation table if exists
     cursor.execute("""
         UPDATE for_obligation
         SET status = 'RETURNED'
         WHERE id = ?
     """, (doc_id,))
 
-    # Audit trail
+    # 4️⃣ Audit trail
     action_text = (
-        f"{username} Returned {doc['code']} {doc['control_number']} "
+        f"{username} returned {doc['code']} {doc['control_number']} "
         f"{doc['document_type']} to {doc['office']} - {remarks}"
     )
     audit_time = datetime.now().strftime("%Y-%m-%d %I:%M:%S %p")
@@ -1259,6 +1429,8 @@ def return_document(doc_id):
     conn.close()
 
     return jsonify({"success": True})
+
+
 
 
 
@@ -1629,7 +1801,7 @@ def received_control_numbers_ome():
         return jsonify({'error': str(e)}), 500
 
 
-# ---------- ADD DOCUMENT (OME) ----------
+
 # ---------- ADD DOCUMENT (OME) ----------
 @app.route("/add_document_ome", methods=["POST"])
 def add_document_ome():
@@ -1648,7 +1820,7 @@ def add_document_ome():
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     file.save(file_path)
 
-    # 🔹 Get combined value from dropdown
+    # 🔹 Parse control number + code
     selected_value = request.form.get("control_number")
     if selected_value and "|" in selected_value:
         code, control_number = selected_value.split("|", 1)
@@ -1666,27 +1838,52 @@ def add_document_ome():
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # 🔹 Get the user's office
+    # 🔹 Get user's office
     cursor.execute("SELECT office FROM users WHERE username = ?", (username,))
     user = cursor.fetchone()
     office = user["office"] if user else "Unknown"
 
-    # 🔹 Fetch the program title from control_numbers table
-    cursor.execute("SELECT program FROM control_numbers WHERE control_no = ?", (control_number,))
+    # 🔹 Get program title
+    cursor.execute(
+        "SELECT program FROM control_numbers WHERE control_no = ?",
+        (control_number,)
+    )
     control_row = cursor.fetchone()
     program_title = control_row["program"] if control_row else None
 
-    # 🔹 Insert into the documents table including program_title
+    # 🔹 Insert into documents
     cursor.execute("""
-        INSERT INTO documents 
-            (control_number, code, document_type, send_to, signatories, file_path, created_by, created_at, office, program_title)
+        INSERT INTO documents (
+            control_number, code, document_type,
+            send_to, signatories, file_path,
+            created_by, created_at, office, program_title
+        )
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (control_number, code, document_type, send_to, signatories, file_path, username, created_at, office, program_title))
+    """, (
+        control_number, code, document_type,
+        send_to, signatories, file_path,
+        username, created_at, office, program_title
+    ))
+
+    # 🔹 Insert into backup_documents
+    cursor.execute("""
+        INSERT INTO backup_documents (
+            control_number, code, document_type,
+            send_to, signatories, file_path,
+            created_by, created_at, office, program_title
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        control_number, code, document_type,
+        send_to, signatories, file_path,
+        username, created_at, office, program_title
+    ))
 
     conn.commit()
     conn.close()
 
     return jsonify({"success": True})
+
 
 
 # ---------- GET RECEIVED CONTROL NUMBERS (for dropdown) ----------

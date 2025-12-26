@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MBO – Setup of Signatories</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: "Segoe UI", sans-serif;
+            background-color: #f5f6fa;
+            margin: 0;
+            font-size: 14px;
+        }
+
+        /* Header Bar */
+        header {
+            background-color: #003366;
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            font-size: 20px;
+            margin: 0;
+        }
+
+         /* Back Button */
+        .back-btn {
+            background-color: #004a99;
+            color: white;
+            padding: 8px 18px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid #003f85;
+            transition: background-color 0.2s ease;
+        }
+
+        .back-btn:hover {
+            background-color: #003f85;
+        }
+
+
+
+        /* Main Content */
+        .content {
+            padding: 20px;
+        }
+
+        .title-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .title-bar h2 {
+            margin: 0;
+            font-size: 18px;
+            color: #003366;
+        }
+
+        .add-btn {
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .add-btn i {
+            margin-right: 5px;
+        }
+
+        /* Search Bar */
+        .search-bar {
+            display: flex;
+            margin-bottom: 10px;
+        }
+
+        .search-bar input {
+            width: 250px;
+            padding: 7px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .search-bar button {
+            background-color: #00509e;
+            color: white;
+            border: none;
+            padding: 7px 12px;
+            margin-left: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        thead {
+            background-color: #003366;
+            color: white;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f2f6ff;
+        }
+
+        /* Action Buttons */
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 15px;
+            padding: 5px;
+            color: #003366;
+        }
+
+        .icon-btn:hover {
+            color: #0077ff;
+        }
+
+        .modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.45);
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    width: 350px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.3);
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    color: #003366;
+}
+
+.modal-content input,
+.modal-content select {
+    width: 100%;
+    padding: 7px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.btn-primary {
+    background-color: #0066cc;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.close-btn {
+    display: block;
+    text-align: center;
+    margin-top: 10px;
+    cursor: pointer;
+    color: #003366;
+}
+
+
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Document Tracker – Setup of Signatories</h1>
+    <a href="{{ url_for('admin_dashboard') }}" class="back-btn">← Back</a>
+
+
+</header>
+
+<div class="content">
+
+    <div class="title-bar">
+        <h2>Setup of Signatories</h2>
+        <button class="add-btn">
+            <i class="fa fa-plus"></i> Add Signatory
+        </button>
+    </div>
+
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search signatory...">
+        <button onclick="searchSignatories()"><i class="fa fa-search"></i></button>
+    </div>
+
+    <!-- TABLE -->
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Office</th>
+                <th>Designation</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+
+        <tbody id="signatoryTableBody">
+            {% for row in signatories %}
+            <tr>
+                <td>{{ row.id }}</td>
+                <td>{{ row.name }}</td>
+                <td>{{ row.office }}</td>
+                <td>{{ row.designation }}</td>
+                <td>
+                    <button class="icon-btn" title="Edit" onclick="editSignatory({{ row.id }})">
+                        <i class="fa fa-pen"></i>
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+
+
+</div>
+
+
+<!-- ============================
+      ADD SIGNATORY MODAL
+=============================== -->
+<div class="modal" id="addSignatoryModal">
+    <div class="modal-content">
+
+        <h2>Add Signatory</h2>
+
+        <form method="POST" action="{{ url_for('add_signatory') }}">
+
+            <label for="sign_name">Full Name</label>
+            <input type="text" name="name" id="sign_name" placeholder="Enter full name" required>
+
+            <label for="sign_office">Office / Department</label>
+            <select name="office" id="sign_office" required>
+                <option value="">Select Office</option>
+                <option>MMO</option>
+                <option>MBO</option>
+                <option>OMAcc</option>
+                <option>PESO</option>
+                <option>HRMO</option>
+                <option>GSO</option>
+                <option>MSWDO</option>
+                <option>OMAss</option>
+                <option>MTO</option>
+                <option>MCR</option>
+                <option>TOURISM</option>
+                <option>MPDO</option>
+                <option>SB</option>
+                <option>SSB</option>
+                <option>MHO</option>
+                <option>MDRRMO</option>
+                <option>OME</option>
+                <option>PORT</option>
+                <option>MAO</option>
+            </select>
+
+            <label for="sign_designation">Designation</label>
+            <input type="text" name="designation" id="sign_designation" placeholder="Enter designation" required>
+
+            <!-- Buttons -->
+            <button type="submit" class="btn-primary">Add</button>
+            <span class="close-btn" onclick="closeAddModal()">← Cancel</span>
+        </form>
+
+    </div>
+</div>
+
+
+<script>
+    function searchSignatories() {
+        const query = document.getElementById("searchInput").value;
+        window.location = `?search=${query}`;
+    }
+
+    function editSignatory(id) {
+        window.location = `/edit_signatory/${id}`;
+    }
+
+
+    // Open modal
+document.querySelector(".add-btn").addEventListener("click", () => {
+    document.getElementById("addSignatoryModal").style.display = "flex";
+});
+
+// Close modal
+function closeAddModal() {
+    document.getElementById("addSignatoryModal").style.display = "none";
+}
+
+// Close when clicking outside modal
+document.getElementById("addSignatoryModal").addEventListener("click", (e) => {
+    if (e.target === document.getElementById("addSignatoryModal")) {
+        closeAddModal();
+    }
+});
+
+</script>
+
+</body>
+</html>

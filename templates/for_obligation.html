@@ -10,7 +10,7 @@
             font-family: "Segoe UI", sans-serif;
             background-color: #f5f6fa;
             margin: 0;
-            font-size: 14px;
+            font-size: 12px;
         }
 
         /* Header */
@@ -188,7 +188,30 @@
     <a href="{{ url_for('received_documents') }}" class="back-btn">← Back</a>
 </header>
 
-<div class="page-title">📄 For Obligation</div>
+<div class="page-title" style="display:flex; justify-content:space-between; align-items:center;">
+    <span>📄 For Obligation</span>
+
+    <!-- 🔍 SEARCH BAR -->
+    <div class="search-container" style="display:flex; gap:8px; align-items:center;">
+        <input
+            type="text"
+            id="searchInput"
+            placeholder="Search Control No..."
+            style="padding:6px 10px; border:1px solid #ccc; border-radius:4px;">
+
+        <button
+            onclick="searchControlNumber()"
+            style="padding:6px 12px; background:#00509e; color:white; border:none; border-radius:4px; cursor:pointer;">
+            Search
+        </button>
+
+        <button
+            onclick="clearSearch()"
+            style="padding:6px 12px; background:#888; color:white; border:none; border-radius:4px; cursor:pointer;">
+            Clear
+        </button>
+    </div>
+</div>
 
 <table>
     <thead>
@@ -203,6 +226,10 @@
     </thead>
     <tbody id="obligationTableBody"></tbody>
 </table>
+
+<!-- PAGINATION UI -->
+<div id="pagination" style="display:flex; justify-content:center; margin:20px 0; gap:6px;"></div>
+
 
 
 <!-- OBLIGATION MODAL -->
@@ -321,9 +348,11 @@ function loadForObligationTable() {
                                 <i class="fa fa-pen"></i>
                             </button>
 
-                            <button class="icon-btn" title="Return Document" onclick="returnDocument(${item.id})">
+                           <button class="icon-btn" title="Return Document" onclick="returnDocument(${item.id})">
                                 <i class="fa fa-undo"></i>
                             </button>
+
+
                         </td>
                     </tr>
                 `;
@@ -335,7 +364,9 @@ function loadForObligationTable() {
 
 
 
-// ---- OPEN OBLIGATION MODAL ----
+/* ================================
+  OBLIGATION MODAL LOGIC
+================================ */
 function openObligationModal(id) {
     fetch(`/get_single_obligation/${id}`)
         .then(res => res.json())
@@ -399,25 +430,21 @@ function submitForObligation() {
 ================================ */
 window.selectedReturnId = null;
 
-function returnDocument(docId) {
+window.returnDocument = function(docId) {
     window.selectedReturnId = docId;
 
-    fetch(`/get_single_obligation/${docId}`)
-        .then(res => res.json())
-        .then(data => {
-            if (!data.success) return alert("Error loading document.");
+    // Find the document from your tableData array
+    const doc = tableData.find(d => d.id === docId);
+    if (!doc) return;
 
-            const doc = data.doc;
+    document.getElementById("returnControlNo").value = doc.control_number;
+    document.getElementById("returnCode").value = `${doc.code}-${doc.control_number}`;
+    document.getElementById("returnDocType").value = doc.document_type;
+    document.getElementById("returnProgramTitle").value = doc.program_title || "";
+    document.getElementById("returnReason").value = "";
 
-            document.getElementById("returnControlNo").value = doc.control_number;
-            document.getElementById("returnCode").value = `${doc.code}-${doc.control_number}`;
-            document.getElementById("returnDocType").value = doc.document_type;
-            document.getElementById("returnProgramTitle").value = doc.program_title || "";
-            document.getElementById("returnReason").value = "";
-
-            document.getElementById("returnModal").style.display = "flex";
-        });
-}
+    document.getElementById("returnModal").style.display = "flex";
+};
 
 
 // Cancel Return
@@ -433,7 +460,6 @@ document.getElementById("returnModal").addEventListener("click", e => {
     }
 });
 
-
 // Confirm Return
 document.getElementById("confirmReturnBtn").addEventListener("click", () => {
     const reason = document.getElementById("returnReason").value.trim();
@@ -444,21 +470,148 @@ document.getElementById("confirmReturnBtn").addEventListener("click", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reason })
     })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                alert("✔ Document returned successfully.");
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert("✔ Document returned successfully.");
 
-                // 🧹 Instantly remove the row from the table
-                document.querySelector(`tr[data-id='${window.selectedReturnId}']`)?.remove();
+            // Remove the row from the table immediately
+            document.querySelector(`tr[data-id='${window.selectedReturnId}']`)?.remove();
 
-                document.getElementById("returnModal").style.display = "none";
-            } else {
-                alert("Error: " + data.error);
-            }
-        });
+            document.getElementById("returnModal").style.display = "none";
+
+            // Reload table if needed
+            loadForObligationTable();
+        } else {
+            alert("Error: " + data.error);
+        }
+    });
 });
 
+
+
+/* ================================
+   SEARCH DOCUMENT LOGIC
+================================ */
+function searchControlNumber() {
+    const input = document.getElementById("searchInput").value.toLowerCase();
+    const rows = document.querySelectorAll("#obligationTableBody tr");
+
+    rows.forEach(row => {
+        const controlNo = row.cells[1].innerText.toLowerCase(); // Column 2
+        row.style.display = controlNo.includes(input) ? "" : "none";
+    });
+}
+
+function clearSearch() {
+    document.getElementById("searchInput").value = "";
+
+    const rows = document.querySelectorAll("#obligationTableBody tr");
+    rows.forEach(row => row.style.display = "");
+}
+
+/* ================================
+   PAGINATION SYSTEM
+================================ */
+let currentPage = 1;
+let rowsPerPage = 10;
+let tableData = [];
+
+// Modify load function so it stores data in tableData
+function loadForObligationTable() {
+    fetch("/get_for_obligation")
+        .then(res => res.json())
+        .then(data => {
+            tableData = data;  // store for pagination
+            currentPage = 1;
+            displayTable();
+            displayPagination();
+        })
+        .catch(err => console.error("Error loading obligation table:", err));
+}
+
+
+function displayTable() {
+    const tableBody = document.getElementById("obligationTableBody");
+    tableBody.innerHTML = "";
+
+    if (!tableData || tableData.length === 0) {
+        tableBody.innerHTML = `
+            <tr><td colspan="6" style="text-align:center;">No records found</td></tr>
+        `;
+        return;
+    }
+
+    const start = (currentPage - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+    const paginatedData = tableData.slice(start, end);
+
+    paginatedData.forEach(item => {
+        const row = `
+            <tr data-id="${item.id}">
+                <td>${item.id}</td>
+                <td>${item.control_number}</td>
+                <td>${item.code}</td>
+                <td>${item.document_type}</td>
+                <td>${item.program_title || ""}</td>
+                <td style="display:flex; gap:10px; align-items:center;">
+                    <button class="icon-btn" title="Obligate" onclick="openObligationModal(${item.id})">
+                        <i class="fa fa-pen"></i>
+                    </button>
+
+                    <button class="icon-btn" title="Return Document" onclick="returnDocument(${item.id})">
+                        <i class="fa fa-undo"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+        tableBody.insertAdjacentHTML("beforeend", row);
+    });
+}
+
+
+function displayPagination() {
+    const pagination = document.getElementById("pagination");
+    pagination.innerHTML = "";
+
+    const totalPages = Math.ceil(tableData.length / rowsPerPage);
+
+    // Previous button
+    pagination.insertAdjacentHTML(
+        "beforeend",
+        `<button onclick="changePage(${currentPage - 1})"
+            ${currentPage === 1 ? "disabled" : ""}
+            style="padding:5px 10px;">Prev</button>`
+    );
+
+    // Page buttons
+    for (let i = 1; i <= totalPages; i++) {
+        pagination.insertAdjacentHTML(
+            "beforeend",
+            `<button onclick="changePage(${i})"
+                style="padding:5px 10px; ${i === currentPage ? 'background:#003366;color:white;' : ''}">
+                ${i}
+            </button>`
+        );
+    }
+
+    // Next button
+    pagination.insertAdjacentHTML(
+        "beforeend",
+        `<button onclick="changePage(${currentPage + 1})"
+            ${currentPage === totalPages ? "disabled" : ""}
+            style="padding:5px 10px;">Next</button>`
+    );
+}
+
+function changePage(page) {
+    const totalPages = Math.ceil(tableData.length / rowsPerPage);
+    if (page < 1 || page > totalPages) return;
+
+    currentPage = page;
+    displayTable();
+    displayPagination();
+}
 
 
 
